@@ -1,5 +1,5 @@
-import Layout from "./Layout.js";
-import LoginForm from "./LoginForm.js";
+import Layout from "./Layout.ts";
+import LoginForm from "./LoginForm.ts";
 
 export default function LoginPage() {
   return Layout(

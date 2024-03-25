@@ -187,9 +187,24 @@ export const items = {
         },
         [string, string]
       >(
-        "SELECT id, `text`, columnId, sortOrder, FROM items WHERE id = ? AND columnId = ?",
+        "SELECT id, `text`, columnId, sortOrder FROM items WHERE id = ? AND columnId = ?",
       )
       .get(id, columnId);
+  },
+  getByBoardId(id: string, boardId: number) {
+    return db
+      .query<
+        {
+          id: string;
+          text: string;
+          columnId: string;
+          sortOrder: number;
+        },
+        [string, number]
+      >(
+        "SELECT i.id, i.`text`, i.columnId, i.sortOrder FROM items i JOIN columns c ON c.id = i.columnId WHERE i.id = ? AND c.boardId = ?",
+      )
+      .get(id, boardId);
   },
   all(boardId: number) {
     return db

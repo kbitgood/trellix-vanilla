@@ -1,23 +1,19 @@
-import Nav from "./Nav.js";
+import Nav from "./Nav.ts";
 
-/**
- *
- * @param {Object} [params]
- * @param {boolean} [params.loggedIn=true]
- * @param {string[]} [params.scripts]
- * @param {string} [params.title="Trellix-Vanilla"]
- * @param {string} [params.bodyStyle=""]
- * @param {string} content
- * @returns {string}
- */
+type LayoutOptions = {
+  loggedIn?: boolean;
+  scripts?: string[];
+  title?: string;
+  bodyStyle?: string;
+};
 export default function Layout(
   {
     loggedIn = true,
     scripts = [],
     title = "Trellix-Vanilla",
     bodyStyle = "",
-  } = {},
-  content,
+  }: LayoutOptions,
+  content: string,
 ) {
   return `
 <!doctype html>
@@ -37,7 +33,14 @@ export default function Layout(
       ${Nav({ loggedIn })}
       ${content}
     </div>
-    ${scripts.map((src) => `<script src="${src}" type="module"></script>`).join("\n")}
+    ${scripts
+      .map((script) => {
+        if (script.trim().startsWith("<script")) {
+          return script;
+        }
+        return `<script src="${script}" type="module"></script>`;
+      })
+      .join("\n")}
   </body>
 </html>
   `;

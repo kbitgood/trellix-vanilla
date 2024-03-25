@@ -362,11 +362,11 @@ main.board {
         }
       }
 
-      .card-list {
+      .item-list {
         flex-grow: 1;
         overflow: auto;
 
-        .card {
+        .item {
           border-top-width: 2px;
           border-bottom-width: 2px;
           margin-bottom: -2px;
@@ -382,7 +382,7 @@ main.board {
             margin-bottom: 0;
           }
 
-          .card-content {
+          .item-content {
             background: white;
             box-shadow:
               0 1px 3px 0 #cbd5e1,
@@ -419,31 +419,27 @@ main.board {
         }
       }
 
-      .add-card {
+      .add-item {
+        margin: 0.5rem;
+        flex-grow: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-align: left;
+        border-radius: 0.75rem;
         padding: 0.5rem;
+        font-weight: 500;
+        color: rgb(100 116 139);
 
-        button {
-          flex-grow: 0;
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          width: 100%;
-          text-align: left;
-          border-radius: 0.75rem;
-          padding: 0.5rem;
-          font-weight: 500;
-          color: rgb(100 116 139);
+        &:hover {
+          background-color: rgb(226 232 240);
+        }
 
-          &:hover {
-            background-color: rgb(226 232 240);
-          }
-
-          & > svg {
-            width: 1rem;
-            height: 1rem;
-            display: inline;
-            align-self: center;
-          }
+        & > svg {
+          width: 1rem;
+          height: 1rem;
+          display: inline;
+          align-self: center;
         }
       }
     }

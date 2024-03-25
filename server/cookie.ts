@@ -1,4 +1,4 @@
-import { index } from "./index.ts";
+import { server } from "./server.ts";
 
 export function parseCookies(
   request: Request,
@@ -17,8 +17,8 @@ export function createCookieStr(
     path = "/",
     expires,
     maxAge,
-    domain = index?.url.hostname,
-    secure = index?.url.protocol === "https:",
+    domain = server?.url.hostname,
+    secure = server?.url.protocol === "https:",
     httpOnly = true,
     sameSite = "Strict",
   }: {

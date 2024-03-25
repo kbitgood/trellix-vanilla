@@ -1,10 +1,4 @@
-/**
- *
- * @param {Object | undefined} params
- * @param {boolean | undefined} params.loggedIn
- * @returns {string}
- */
-export default function Nav({ loggedIn = true } = {}) {
+export default function Nav({ loggedIn }: { loggedIn: boolean }) {
   return `
 <nav>
   <a class="logo" href="${loggedIn ? "/home" : "/"}" id="home-link">

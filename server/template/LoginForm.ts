@@ -1,4 +1,4 @@
-export default function LoginForm({ login = true }) {
+export default function LoginForm({ login }: { login: boolean }) {
   const signupOrLogin = login ? "login" : "signup";
   return `
 <form id="${signupOrLogin}-form" method="post" action="/${signupOrLogin}">

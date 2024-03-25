@@ -1,6 +1,9 @@
 {
   "name": "server",
-  "module": "index.ts",
+  "module": "server/index.ts",
+  "scripts": {
+    "dev": "bun --watch server/index.ts"
+  },
   "devDependencies": {
     "@types/bun": "latest",
     "prettier": "^3.2.5"

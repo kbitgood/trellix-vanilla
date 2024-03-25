@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-    "lib": ["ESNext"],
     "target": "ESNext",
     "module": "ESNext",
     "moduleDetection": "force",
     "jsx": "react-jsx",
+    "jsxImportSource": "./jsx",
     "allowJs": true,
 
     /* Bundler mode */
@@ -18,5 +18,6 @@
     "strict": true,
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true
-  }
+  },
+  "include": ["server/**/*.ts","types.d.ts"]
 }

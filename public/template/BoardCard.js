@@ -1,18 +1,16 @@
 /**
  *
- * @param {Object} board
- * @param {number} board.id
- * @param {string} board.name
- * @param {string} board.color
+ * @param {{
+ *   board: Model.Board
+ * }} params
  * @returns string
- * @constructor
  */
 export default function BoardCard({ board }) {
   return `
-<a href="/board/${board.id}" style="border-color: ${board.color}">
+<a class="board-card" href="/board/${board.id}" style="border-color: ${board.color}">
   <div>${board.name}</div>
-  <form method="post" action="/board/${board.id}">
-    <input type="hidden" name="intent" value="delete" />
+  <form method="post" action="/board/${board.id}" class="delete-board" onsubmit="onFormSubmit(event)">
+    <input type="hidden" name="intent" value="deleteBoard" />
     <button type="submit" class="icon-button" aria-label="Delete board">
       <svg><use href="/img/icons.svg#trash"></use></svg>
     </button>

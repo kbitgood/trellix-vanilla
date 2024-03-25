@@ -1,16 +1,11 @@
-import Layout from "./Layout.js";
-import BoardCard from "./BoardCard.js";
+import Layout from "./Layout.ts";
+import BoardCard from "../../public/template/BoardCard.js";
 
-/**
- * @param {Object} params
- * @param {Array<{id:number, name:string, color:string}>} params.boards
- * @returns {string}
- */
-export default function HomePage({ boards }) {
+export default function HomePage({ boards }: { boards: Model.Board[] }) {
   return Layout(
     {
       loggedIn: true,
-      scripts: ["/js/home.js"],
+      scripts: ["/js/main.js"],
       title: "Trellix-Vanilla",
     },
     `
@@ -42,7 +37,7 @@ export default function HomePage({ boards }) {
 <section id="boards">
   <h2>Boards</h2>
   <div class="board-list">
-    ${boards.map((board) => BoardCard({ board })).join("\n")}
+    ${boards.map((board) => BoardCard({ board: board })).join("\n")}
   </div>
 </section>
 </main>
