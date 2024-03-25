@@ -3,7 +3,7 @@ import type { Database } from "bun:sqlite";
 export default function seed(db: Database) {
   db.query(
     `
-        CREATE TABLE users
+        CREATE TABLE IF NOT EXISTS users
         (
             id       INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT NOT NULL,
@@ -15,7 +15,7 @@ export default function seed(db: Database) {
 
   db.query(
     `
-        CREATE TABLE sessions
+        CREATE TABLE IF NOT EXISTS sessions
         (
             token     TEXT PRIMARY KEY NOT NULL,
             userId    INTEGER NOT NULL,
@@ -27,7 +27,7 @@ export default function seed(db: Database) {
 
   db.query(
     `
-        CREATE TABLE boards
+        CREATE TABLE IF NOT EXISTS boards
         (
             id     INTEGER PRIMARY KEY AUTOINCREMENT,
             name   TEXT NOT NULL,
@@ -40,7 +40,7 @@ export default function seed(db: Database) {
 
   db.query(
     `
-        CREATE TABLE columns
+        CREATE TABLE IF NOT EXISTS columns
         (
             id      TEXT PRIMARY KEY NOT NULL,
             name    TEXT NOT NULL,
@@ -53,7 +53,7 @@ export default function seed(db: Database) {
 
   db.query(
     `
-        CREATE TABLE items
+        CREATE TABLE IF NOT EXISTS items
         (
             id        TEXT PRIMARY KEY NOT NULL,
             text      TEXT NOT NULL,

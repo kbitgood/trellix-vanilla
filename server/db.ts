@@ -1,12 +1,19 @@
+import { existsSync } from "fs";
+import { join } from "path";
 import { Database } from "bun:sqlite";
 import seed from "./seed.ts";
 import { BadRequestError } from "./error.ts";
 
-const dbExists = await Bun.file("db.sqlite").exists();
-const db = new Database("db.sqlite");
-if (!dbExists) {
-  seed(db);
+const litefs = join(
+  process.env.NODE_ENV === "production" ? "/var/lib" : ".",
+  "litefs",
+);
+if (!existsSync(litefs)) {
+  console.error("Unable to reach", litefs);
+  process.exit(1);
 }
+const db = new Database(join(litefs, "db.sqlite"));
+seed(db);
 
 export const user = {
   exists(username: string) {

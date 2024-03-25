@@ -63,6 +63,7 @@ createRoute({
         Location: "/home",
         "Set-Cookie": createCookieStr("session", token, {
           expires: new Date(expiresAt),
+          domain: new URL(request.url).hostname,
         }),
       },
     });

@@ -2,7 +2,11 @@
   "name": "server",
   "module": "server/index.ts",
   "scripts": {
-    "dev": "bun --watch server/index.ts"
+    "dev": "bun --watch server/index.ts",
+    "build": "docker build -t trellix-vanilla .",
+    "start": "docker run -v ./litefs:/var/lib/litefs -p 3000:3000 -d trellix-vanilla",
+    "stop": "docker stop $(docker ps -q --filter ancestor=trellix-vanilla)",
+    "deploy": "fly deploy"
   },
   "devDependencies": {
     "@types/bun": "latest",
