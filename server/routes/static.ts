@@ -7,7 +7,7 @@ createRoute({
   public: true,
   handler: async ({ request }) => {
     const url = new URL(request.url);
-    const filePath = process.env.PUBLIC_DIR + url.pathname;
+    const filePath = import.meta.dirname + "/../../public" + url.pathname;
     const file = Bun.file(filePath);
     if (!(await file.exists())) {
       console.log("File not found:", filePath);
