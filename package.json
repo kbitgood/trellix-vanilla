@@ -1,11 +1,12 @@
 {
-  "name": "trellix-vanilla",
-  "version": "1.0.0",
-  "description": "",
-  "scripts": {},
-  "author": "",
-  "license": "ISC",
+  "name": "server",
+  "module": "index.ts",
   "devDependencies": {
+    "@types/bun": "latest",
     "prettier": "^3.2.5"
-  }
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "type": "module"
 }

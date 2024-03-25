@@ -17,3 +17,11 @@ export class UnauthorizedError extends HTTPError {
     super(message);
   }
 }
+
+export class NotFoundError extends HTTPError {
+  status = 404;
+  statusText = "Not Found";
+  constructor(message: string) {
+    super(message);
+  }
+}

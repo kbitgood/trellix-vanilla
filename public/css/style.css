@@ -114,7 +114,7 @@ form {
     background-color: transparent;
   }
 
-  button[type="submit"] {
+  button[type="submit"]:not(.icon-button) {
     text-align: center;
     border-radius: 0.375rem;
     background-color: rgb(57 146 255);

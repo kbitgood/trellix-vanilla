@@ -7,7 +7,8 @@ export default function seed(db: Database) {
         (
             id       INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT NOT NULL,
-            password TEXT NOT NULL
+            password TEXT NOT NULL,
+            UNIQUE (username)
         );
     `,
   ).run();
@@ -17,9 +18,9 @@ export default function seed(db: Database) {
         CREATE TABLE session
         (
             token      TEXT PRIMARY KEY NOT NULL,
-            user_id    INTEGER NOT NULL,
-            expires_at DATE NOT NULL,
-            FOREIGN KEY (user_id) REFERENCES user (id)
+            userId    INTEGER NOT NULL,
+            expiresAt DATE NOT NULL,
+            FOREIGN KEY (userId) REFERENCES user (id)
         );
     `,
   ).run();
@@ -32,8 +33,8 @@ export default function seed(db: Database) {
             id      INTEGER PRIMARY KEY AUTOINCREMENT,
             name    TEXT NOT NULL,
             color   TEXT NOT NULL,
-            user_id INTEGER NOT NULL,
-            FOREIGN KEY (user_id) REFERENCES user (id)
+            userId INTEGER NOT NULL,
+            FOREIGN KEY (userId) REFERENCES user (id)
         );
     `,
   ).run();
