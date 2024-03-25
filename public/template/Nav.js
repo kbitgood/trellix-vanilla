@@ -7,7 +7,7 @@
 export default function Nav({ loggedIn = true } = {}) {
   return `
 <nav>
-  <a class="logo" href="/" id="home-link">
+  <a class="logo" href="${loggedIn ? "/home" : "/"}" id="home-link">
     <div>Trellix-Vanilla</div>
     <div>a Stupid Demo</div>
   </a>

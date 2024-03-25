@@ -11,12 +11,12 @@ if (!dbExists) {
 export const user = {
   exists(username: string) {
     return !!db
-      .query("SELECT username FROM user WHERE username = ?")
+      .query("SELECT username FROM users WHERE username = ?")
       .get(username.toLowerCase());
   },
   create(username: string, password: string) {
     const encryptedPassword = Bun.password.hashSync(password);
-    db.query("INSERT INTO user (username, password) VALUES (?, ?)").run(
+    db.query("INSERT INTO users (username, password) VALUES (?, ?)").run(
       username.toLowerCase(),
       encryptedPassword,
     );
@@ -30,7 +30,7 @@ export const session = {
       .query<
         { id: number; password: string },
         string
-      >("SELECT id, password FROM user WHERE username = ?")
+      >("SELECT id, password FROM users WHERE username = ?")
       .get(username.toLowerCase());
     if (!user || !Bun.password.verifySync(password, user.password)) {
       throw new BadRequestError("Invalid username or password");
@@ -39,7 +39,7 @@ export const session = {
     const token = crypto.randomUUID();
     const expiresAt = Date.now() + 1000 * 60 * 60 * 24 * 7; // 1 week
     db.query(
-      "INSERT INTO session (token, userId, expiresAt) VALUES (?, ?, ?)",
+      "INSERT INTO sessions (token, userId, expiresAt) VALUES (?, ?, ?)",
     ).run(token, user.id, expiresAt);
 
     return {
@@ -48,24 +48,24 @@ export const session = {
     };
   },
   logout(token: string) {
-    db.query("DELETE FROM session WHERE token = ?").run(token);
+    db.query("DELETE FROM sessions WHERE token = ?").run(token);
   },
   getUser(token: string | undefined) {
     if (!token) return null;
     const result = db
       .query<{ id: number; username: string; expiresAt: number }, string>(
         `
-SELECT user.id, user.username, session.expiresAt
-FROM session
-JOIN user ON user.id = session.userId
-WHERE token = ?
+SELECT u.id, u.username, s.expiresAt
+FROM sessions s
+JOIN users u ON u.id = s.userId
+WHERE s.token = ?
 `,
       )
       .get(token);
     if (!result) return null;
     const { expiresAt, ...user } = result;
     if (expiresAt < Date.now()) {
-      db.query("DELETE FROM session WHERE token = ?").run(token);
+      db.query("DELETE FROM sessions WHERE token = ?").run(token);
       return null;
     }
     return user;
@@ -74,20 +74,14 @@ WHERE token = ?
 
 // delete expired sessions every 30 minutes
 function clearExpiredSessions() {
-  db.query("DELETE FROM session WHERE expiresAt < ?").run(Date.now());
+  db.query("DELETE FROM sessions WHERE expiresAt < ?").run(Date.now());
   setTimeout(clearExpiredSessions, 30 * 60 * 1000);
 }
 clearExpiredSessions();
 
-export type Board = {
-  id: number;
-  name: string;
-  color: string;
-  userId: number;
-};
 export const boards = {
-  create(board: Omit<Board, "id">): Board {
-    db.query("INSERT INTO board (name, color, userId) VALUES (?, ?, ?)").run(
+  create(board: { name: string; color: string; userId: number }) {
+    db.query("INSERT INTO boards (name, color, userId) VALUES (?, ?, ?)").run(
       board.name,
       board.color,
       board.userId,
@@ -97,7 +91,7 @@ export const boards = {
       .get(null)!;
     return { id, ...board };
   },
-  all(userId: number): Board[] {
+  all(userId: number) {
     return db
       .query<
         {
@@ -107,10 +101,10 @@ export const boards = {
           userId: number;
         },
         number
-      >("SELECT id, name, color, userId FROM board WHERE userId = ?")
+      >("SELECT id, name, color, userId FROM boards WHERE userId = ?")
       .all(userId);
   },
-  get(id: number, userId: number): Board | null {
+  get(id: number, userId: number) {
     return db
       .query<
         {
@@ -120,10 +114,112 @@ export const boards = {
           userId: number;
         },
         [number, number]
-      >("SELECT id, name, color, userId FROM board WHERE id = ? AND userId = ?")
+      >(
+        "SELECT id, name, color, userId FROM boards WHERE id = ? AND userId = ?",
+      )
       .get(id, userId);
   },
   delete(id: number) {
-    db.query("DELETE FROM board WHERE id = ?").run(id);
+    db.query("DELETE FROM boards WHERE id = ?").run(id);
+  },
+};
+
+export const columns = {
+  create(column: { id?: string; name: string; boardId: number }) {
+    const id = column.id || crypto.randomUUID();
+    db.query("INSERT INTO columns (id, name, boardId) VALUES (?, ?, ?)").run(
+      id,
+      column.name,
+      column.boardId,
+    );
+    return { id, ...column };
+  },
+  get(id: string, boardId: number) {
+    return db
+      .query<
+        {
+          id: string;
+          name: string;
+          boardId: number;
+        },
+        [string, number]
+      >("SELECT id, name, boardId FROM columns WHERE id = ? AND boardId = ?")
+      .get(id, boardId);
+  },
+  all(boardId: number) {
+    return db
+      .query<
+        {
+          id: string;
+          name: string;
+          boardId: number;
+        },
+        number
+      >("SELECT id, name, boardId FROM columns WHERE boardId = ?")
+      .all(boardId);
+  },
+  delete(id: string) {
+    db.query("DELETE FROM columns WHERE id = ?").run(id);
+  },
+};
+
+export const items = {
+  create(item: {
+    id?: string;
+    text: string;
+    columnId: string;
+    sortOrder: number;
+  }) {
+    const id = item.id || crypto.randomUUID();
+    db.query(
+      "INSERT INTO items (id, `text`, columnId, sortOrder) VALUES (?, ?, ?, ?)",
+    ).run(id, item.text, item.columnId, item.sortOrder);
+    return { id, ...item };
+  },
+  get(id: string, columnId: string) {
+    return db
+      .query<
+        {
+          id: string;
+          text: string;
+          columnId: string;
+          sortOrder: number;
+        },
+        [string, string]
+      >(
+        "SELECT id, `text`, columnId, sortOrder, FROM items WHERE id = ? AND columnId = ?",
+      )
+      .get(id, columnId);
+  },
+  all(boardId: number) {
+    return db
+      .query<
+        {
+          id: string;
+          text: string;
+          columnId: string;
+          sortOrder: number;
+        },
+        number
+      >(
+        `
+SELECT i.id, i.text, i.columnId, i.sortOrder
+FROM items i
+JOIN columns c ON c.id = i.columnId
+WHERE c.boardId = ?
+ORDER BY i.sortOrder
+`,
+      )
+      .all(boardId);
+  },
+  delete(id: string) {
+    db.query(
+      `
+UPDATE items
+SET sortOrder = sortOrder - 1
+WHERE sortOrder > (SELECT sortOrder FROM items WHERE id = ?)
+`,
+    ).run(id);
+    db.query("DELETE FROM items WHERE id = ?").run(id);
   },
 };

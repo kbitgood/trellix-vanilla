@@ -108,8 +108,6 @@ function errorHandler(e: unknown, request: Request): Response {
     name = e.statusText;
   }
 
-  new Response("", { headers: {} });
-
   if (request.headers.get("Accept")?.includes("application/json")) {
     return Response.json({ success: false, error: { message } }, { status });
   }

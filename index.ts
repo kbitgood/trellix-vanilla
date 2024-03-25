@@ -7,6 +7,7 @@ import SignupPage from "./public/template/SignupPage.js";
 import LoginPage from "./public/template/LoginPage";
 import SplashPage from "./public/template/SplashPage";
 import HomePage from "./public/template/HomePage";
+import BoardPage from "./public/template/BoardPage";
 
 startServer();
 
@@ -187,7 +188,12 @@ createRoute({
     if (request.headers.get("Accept")?.includes("application/json")) {
       return Response.json(board, { status: 201 });
     } else {
-      throw new NotFoundError("Not implemented");
+      const columns = db.columns.all(id);
+      const items = db.items.all(id);
+      const html = BoardPage({ board, columns, items });
+      return new Response(html, {
+        headers: { "Content-Type": "text/html; charset=utf-8" },
+      });
     }
   },
 });
@@ -202,12 +208,18 @@ createRoute({
       formData === null ||
       !("intent" in formData) ||
       typeof formData.intent !== "string" ||
-      !["delete"].includes(formData.intent)
+      ![
+        "delete",
+        "createColumn",
+        "deleteColumn",
+        "createItem",
+        "deleteItem",
+      ].includes(formData.intent)
     ) {
       throw new BadRequestError("Invalid form data");
     }
+    const board = db.boards.get(id, user.id);
     if (formData.intent === "delete") {
-      const board = db.boards.get(id, user.id);
       if (board) {
         db.boards.delete(id);
       }
@@ -219,8 +231,90 @@ createRoute({
           headers: { Location: "/home" },
         });
       }
+    } else if (
+      formData.intent === "createColumn" &&
+      "name" in formData &&
+      typeof formData.name === "string"
+    ) {
+      const columnId =
+        "id" in formData && typeof formData.id === "string"
+          ? formData.id
+          : undefined;
+      if (!board) throw new NotFoundError(`Board ${id} not found`);
+      const column = db.columns.create({
+        id: columnId,
+        name: formData.name,
+        boardId: id,
+      });
+      if (request.headers.get("Accept")?.includes("application/json")) {
+        return Response.json(column, { status: 201 });
+      } else {
+        return new Response("", {
+          status: 302,
+          headers: { Location: `/board/${id}` },
+        });
+      }
+    } else if (
+      formData.intent === "deleteColumn" &&
+      "columnId" in formData &&
+      typeof formData.columnId === "string"
+    ) {
+      if (!board) throw new NotFoundError(`Board ${id} not found`);
+      db.columns.delete(formData.columnId);
+      if (request.headers.get("Accept")?.includes("application/json")) {
+        return Response.json({ success: true }, { status: 204 });
+      } else {
+        return new Response("", {
+          status: 302,
+          headers: { Location: `/board/${id}` },
+        });
+      }
+    } else if (
+      formData.intent === "createItem" &&
+      "columnId" in formData &&
+      typeof formData.columnId === "string" &&
+      "text" in formData &&
+      typeof formData.text === "string" &&
+      "sortOrder" in formData &&
+      typeof formData.sortOrder === "string"
+    ) {
+      if (!board) throw new NotFoundError(`Board ${id} not found`);
+      const columnId =
+        "id" in formData && typeof formData.id === "string"
+          ? formData.id
+          : undefined;
+      const item = db.items.create({
+        id: columnId,
+        text: formData.text,
+        columnId: formData.columnId,
+        sortOrder: parseInt(formData.sortOrder),
+      });
+      if (request.headers.get("Accept")?.includes("application/json")) {
+        return Response.json(item, { status: 201 });
+      } else {
+        return new Response("", {
+          status: 302,
+          headers: { Location: `/board/${id}` },
+        });
+      }
+    } else if (
+      formData.intent === "deleteItem" &&
+      "itemId" in formData &&
+      typeof formData.itemId === "string"
+    ) {
+      if (!board) throw new NotFoundError(`Board ${id} not found`);
+      db.items.delete(formData.itemId);
+      if (request.headers.get("Accept")?.includes("application/json")) {
+        return Response.json({ success: true }, { status: 204 });
+      } else {
+        return new Response("", {
+          status: 302,
+          headers: { Location: `/board/${id}` },
+        });
+      }
     } else {
-      throw new BadRequestError("Invalid intent");
+      console.log(JSON.stringify(formData, null, 2));
+      throw new BadRequestError("Invalid form data");
     }
   },
 });

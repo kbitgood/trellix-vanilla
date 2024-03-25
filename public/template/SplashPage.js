@@ -5,7 +5,10 @@ export default function SplashPage() {
     {
       loggedIn: false,
       title: "Welcome to Trellix-Vanilla",
-      darkBackground: true,
+      bodyStyle: `
+background-color: rgb(15 23 42);
+color: rgb(203 213 225);
+`,
     },
     `
 <main class="splash">

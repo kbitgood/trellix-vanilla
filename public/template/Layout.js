@@ -6,7 +6,7 @@ import Nav from "./Nav.js";
  * @param {boolean} [params.loggedIn=true]
  * @param {string[]} [params.scripts]
  * @param {string} [params.title="Trellix-Vanilla"]
- * @param {boolean} [params.darkBackground=false]
+ * @param {string} [params.bodyStyle=""]
  * @param {string} content
  * @returns {string}
  */
@@ -15,7 +15,7 @@ export default function Layout(
     loggedIn = true,
     scripts = [],
     title = "Trellix-Vanilla",
-    darkBackground = false,
+    bodyStyle = "",
   } = {},
   content,
 ) {
@@ -28,12 +28,16 @@ export default function Layout(
     <link href="/css/reset.css" rel="stylesheet" />
     <link href="/css/style.css" rel="stylesheet" />
   </head>
-  <body ${darkBackground ? `class="dark-bg"` : ""}>
+  <body style="${bodyStyle
+    .replaceAll(/\n/g, " ")
+    .split(";")
+    .map((rule) => rule.trim())
+    .join(";")}">
     <div class="page-wrapper">
       ${Nav({ loggedIn })}
       ${content}
     </div>
-    ${scripts.map((src) => `<script src="${src}"></script>`).join("\n")}
+    ${scripts.map((src) => `<script src="${src}" type="module"></script>`).join("\n")}
   </body>
 </html>
   `;

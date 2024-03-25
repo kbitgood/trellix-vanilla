@@ -37,6 +37,9 @@ async function loadBoards() {
     initializeBoardCard(boardCard);
   }
   isStale = false;
+  setTimeout(() => {
+    isStale = true;
+  }, 5 * 1000);
 }
 
 let isStale = false;
