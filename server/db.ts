@@ -164,16 +164,18 @@ export const columns = {
 };
 
 export const items = {
-  create(item: {
-    id?: string;
-    text: string;
-    columnId: string;
-    sortOrder: number;
-  }) {
+  create(item: { id?: string; text: string; columnId: string }) {
     const id = item.id || crypto.randomUUID();
+    const sortOrder =
+      db
+        .query<
+          { sortOrder: number },
+          string
+        >("SELECT COUNT(*) + 1 AS sortOrder FROM items WHERE columnId = ?")
+        .get(item.columnId)?.sortOrder || 0;
     db.query(
       "INSERT INTO items (id, `text`, columnId, sortOrder) VALUES (?, ?, ?, ?)",
-    ).run(id, item.text, item.columnId, item.sortOrder);
+    ).run(id, item.text, item.columnId, sortOrder);
     return { id, ...item };
   },
   get(id: string, columnId: string) {
@@ -236,5 +238,31 @@ WHERE sortOrder > (SELECT sortOrder FROM items WHERE id = ?)
 `,
     ).run(id);
     db.query("DELETE FROM items WHERE id = ?").run(id);
+  },
+  move(item: Model.Item, columnId: string, sortOrder: number) {
+    // shift items from old column down
+    db.query(
+      `
+UPDATE items
+SET sortOrder = sortOrder - 1
+WHERE columnId = ? AND sortOrder > ?
+`,
+    ).run(item.columnId, item.sortOrder);
+    // shift items from new column up
+    db.query(
+      `
+UPDATE items
+SET sortOrder = sortOrder + 1
+WHERE columnId = ? AND sortOrder >= ?
+`,
+    ).run(columnId, sortOrder);
+    // update item
+    db.query(
+      `
+UPDATE items
+SET columnId = ?, sortOrder = ?
+WHERE id = ?
+`,
+    ).run(columnId, sortOrder, item.id);
   },
 };

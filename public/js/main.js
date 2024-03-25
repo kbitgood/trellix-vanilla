@@ -78,10 +78,6 @@ window.cancelAddColumn = function (event) {
 window.createColumn = function (form) {
   const formData = new FormData(form);
   formData.set("id", crypto.randomUUID());
-  formData.set(
-    "sortOrder",
-    form.closest(".columns").querySelectorAll(".column").length,
-  );
   const column = Object.fromEntries(formData.entries());
   const columnEl = htmlToElement(Column({ column, items: [] }));
   const main = form.closest("main");
@@ -155,10 +151,6 @@ window.createItem = function (form) {
   const boardId = Number(form.action.split("/").pop());
   const formData = new FormData(form);
   formData.set("id", crypto.randomUUID());
-  formData.set(
-    "sortOrder",
-    form.closest(".column").querySelectorAll(".item").length,
-  );
   const item = Object.fromEntries(formData.entries());
   const itemEl = htmlToElement(Item({ item, boardId }));
   const itemList = form.parentElement?.querySelector(".item-list");
@@ -178,6 +170,109 @@ window.deleteItem = function (form) {
   const itemEl = form.closest(".item");
   itemEl.remove();
 };
+
+let draggingItem = null;
+
+/** @param {DragEvent} event */
+window.onItemDragStart = function (event) {
+  draggingItem = event.currentTarget.closest(".item");
+  console.log("dragstart", draggingItem);
+
+  window.ondragover = onItemDragOver;
+  window.ondrop = onItemDrop;
+};
+
+/** @param {DragEvent} event */
+function onItemDragOver(event) {
+  event.preventDefault();
+  event.dataTransfer.dropEffect = "move";
+  const prevOver = document.querySelector(
+    ".item[data-over-top], .item[data-over-bottom]",
+  );
+  if (prevOver) {
+    prevOver.removeAttribute("data-over-top");
+    prevOver.removeAttribute("data-over-bottom");
+  }
+  for (const listEl of Array.from(document.querySelectorAll(".column"))) {
+    const listRect = listEl.getBoundingClientRect();
+    if (
+      listRect.left < event.clientX &&
+      event.clientX < listRect.right &&
+      listRect.top < event.clientY &&
+      event.clientY < listRect.bottom
+    ) {
+      const itemEls = Array.from(listEl.querySelectorAll(".item"));
+      if (itemEls.length) {
+        for (const itemEl of itemEls) {
+          const itemRect = itemEl.getBoundingClientRect();
+          if (
+            event.clientY < itemRect.bottom ||
+            itemEl.nextElementSibling === null
+          ) {
+            const attribute =
+              event.clientY < itemRect.top + itemRect.height / 2
+                ? "data-over-top"
+                : "data-over-bottom";
+            itemEl.setAttribute(attribute, "true");
+            break;
+          }
+        }
+      } else {
+        listEl
+          .querySelector(".item-list")
+          .setAttribute("data-over-top", "true");
+      }
+      break;
+    }
+  }
+}
+
+/** @param {DragEvent} event */
+function onItemDrop(event) {
+  event.preventDefault();
+  window.ondragover = undefined;
+  window.ondrop = undefined;
+  if (!draggingItem) return;
+
+  const over = document.querySelector(
+    ".item[data-over-top], .item[data-over-bottom], .item-list[data-over-top]",
+  );
+  if (over !== draggingItem) {
+    if (over.classList.contains("item-list")) {
+      over.append(draggingItem);
+    } else if (over.hasAttribute("data-over-top")) {
+      over.closest(".item-list").insertBefore(draggingItem, over);
+    } else if (over.nextElementSibling) {
+      over
+        .closest(".item-list")
+        .insertBefore(draggingItem, over.nextElementSibling);
+    } else {
+      over.closest(".item-list").append(draggingItem);
+    }
+  }
+
+  const boardId = Number(document.location.pathname.split("/").pop());
+  const formData = new FormData();
+  const columnEl = draggingItem.closest(".column");
+  formData.set("intent", "moveItem");
+  formData.set("itemId", draggingItem.dataset.id);
+  formData.set("columnId", over.closest(".column").dataset.id);
+  formData.set(
+    "sortOrder",
+    Array.from(columnEl.querySelector(".item-list").children).indexOf(
+      draggingItem,
+    ) + 1,
+  );
+  void fetch(`/board/${boardId}`, {
+    method: "POST",
+    headers: { Accept: "application/json" },
+    body: formData,
+  });
+
+  over.removeAttribute("data-over-top");
+  over.removeAttribute("data-over-bottom");
+  draggingItem = null;
+}
 
 /****************************************************
  ***************** initialization *******************

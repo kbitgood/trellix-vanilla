@@ -70,7 +70,7 @@ export const deleteColumn = createAction(
 );
 
 export const createItem = createAction(
-  { requiredFields: ["text", "columnId", "sortOrder"] },
+  { requiredFields: ["text", "columnId"] },
   ({ board, data }) => {
     if (!db.columns.get(data.columnId, board.id))
       throw new NotFoundError(`Column ${data.columnId} not found`);
@@ -79,7 +79,6 @@ export const createItem = createAction(
       id: hasProp("id", data) ? data.id : undefined,
       text: data.text,
       columnId: data.columnId,
-      sortOrder: parseInt(data.sortOrder),
     });
   },
 );
@@ -91,6 +90,22 @@ export const deleteItem = createAction(
     if (item) {
       db.items.delete(itemId);
     }
+    return { success: true };
+  },
+);
+
+export const moveItem = createAction(
+  { requiredFields: ["itemId", "columnId", "sortOrder"] },
+  ({ board, data }) => {
+    const { itemId, columnId, sortOrder } = data;
+    const item = db.items.getByBoardId(itemId, board.id);
+    if (!item) {
+      throw new NotFoundError(`Item ${itemId} not found`);
+    }
+    if (!db.columns.get(columnId, board.id)) {
+      throw new NotFoundError(`Column ${data.columnId} not found`);
+    }
+    db.items.move(item, columnId, parseInt(sortOrder));
     return { success: true };
   },
 );

@@ -46,7 +46,6 @@ export default function BoardPage({
       <input type="hidden" name="intent" value="createColumn">
       <input type="hidden" name="id" value="">
       <input type="hidden" name="boardId" value="${board.id}">
-      <input type="hidden" name="sortOrder" value="${columns.length}">
       <input required="" type="text" name="name" onkeydown="onAddColumnKeyDown(event)">
       <div class="buttons flex justify-between">
         <button type="submit" tabindex="0">Save Column</button>

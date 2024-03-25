@@ -365,6 +365,13 @@ main.board {
       .item-list {
         flex-grow: 1;
         overflow: auto;
+        margin-top: -2px;
+        border-top-width: 2px;
+        border-color: transparent;
+
+        &[data-over-top] {
+          border-top-color: rgb(244 66 80);
+        }
 
         .item {
           border-top-width: 2px;
@@ -373,6 +380,13 @@ main.board {
           cursor: grab;
           padding: 0.25rem 0.5rem;
           border-color: transparent;
+
+          &[data-over-top] {
+            border-top-color: rgb(244 66 80);
+          }
+          &[data-over-bottom] {
+            border-bottom-color: rgb(244 66 80);
+          }
 
           &:active {
             cursor: grabbing;

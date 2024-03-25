@@ -20,7 +20,7 @@ export default function seed(db: Database) {
             token     TEXT PRIMARY KEY NOT NULL,
             userId    INTEGER NOT NULL,
             expiresAt DATE NOT NULL,
-            FOREIGN KEY (userId) REFERENCES users (id)
+            FOREIGN KEY (userId) REFERENCES users (id) ON DELETE CASCADE
         );
     `,
   ).run();
@@ -33,7 +33,7 @@ export default function seed(db: Database) {
             name   TEXT NOT NULL,
             color  TEXT NOT NULL,
             userId INTEGER NOT NULL,
-            FOREIGN KEY (userId) REFERENCES users (id)
+            FOREIGN KEY (userId) REFERENCES users (id) ON DELETE CASCADE
         );
     `,
   ).run();
@@ -45,7 +45,7 @@ export default function seed(db: Database) {
             id      TEXT PRIMARY KEY NOT NULL,
             name    TEXT NOT NULL,
             boardId INTEGER NOT NULL,
-            FOREIGN KEY (boardId) REFERENCES boards (id)
+            FOREIGN KEY (boardId) REFERENCES boards (id) ON DELETE CASCADE
         );
     `,
   ).run();
@@ -58,7 +58,7 @@ export default function seed(db: Database) {
             text      TEXT NOT NULL,
             columnId  TEXT NOT NULL,
             sortOrder INTEGER NOT NULL,
-            FOREIGN KEY (columnId) REFERENCES columns (id)
+            FOREIGN KEY (columnId) REFERENCES columns (id) ON DELETE CASCADE
         );
     `,
   ).run();

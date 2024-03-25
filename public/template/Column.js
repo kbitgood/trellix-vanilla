@@ -44,7 +44,6 @@ export default function Column({ column, items = [] }) {
     <input type="hidden" name="intent" value="createItem">
     <input type="hidden" name="id" value="">
     <input type="hidden" name="columnId" value="${column.id}">
-    <input type="hidden" name="sortOrder" value="${items.length}">
     <textarea 
       required="" 
       name="text" 
