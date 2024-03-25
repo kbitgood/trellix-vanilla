@@ -45,6 +45,7 @@ export default function seed(db: Database) {
             id      TEXT PRIMARY KEY NOT NULL,
             name    TEXT NOT NULL,
             boardId INTEGER NOT NULL,
+            sortOrder INTEGER NOT NULL,
             FOREIGN KEY (boardId) REFERENCES boards (id) ON DELETE CASCADE
         );
     `,

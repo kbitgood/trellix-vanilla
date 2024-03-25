@@ -12,6 +12,7 @@ declare namespace Model {
     id: string;
     name: string;
     boardId: number;
+    sortOrder: number;
   };
   export type Item = {
     id: string;

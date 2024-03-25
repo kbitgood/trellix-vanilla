@@ -291,17 +291,31 @@ main.board {
   min-height: 0;
   overflow-x: scroll;
 
-  h1 button {
-    margin: 1rem 2rem;
-    font-size: 1.5rem;
-    line-height: 2rem;
-    padding: 0.25rem 0.5rem;
-    border-color: transparent;
-    border-width: 1px;
-    border-radius: 0.5rem;
-    display: block;
-    color: rgb(30 41 59);
-    font-weight: 500;
+  h1 {
+    button {
+      margin: 1rem 2rem;
+      font-size: 1.5rem;
+      line-height: 2rem;
+      padding: 0.25rem 0.5rem;
+      border-color: transparent;
+      border-width: 1px;
+      border-radius: 0.5rem;
+      display: block;
+      color: rgb(30 41 59);
+      font-weight: 500;
+    }
+    input[type="text"] {
+      margin: 1rem 2rem;
+      padding: 0.25rem 0.5rem;
+      border: 1px solid rgb(148 163 184);
+      border-radius: 0.5rem;
+      color: black;
+      font-weight: 500;
+      font-size: 1.5rem;
+      line-height: 2rem;
+      width: unset;
+      display: inline-block;
+    }
   }
 
   .columns {
@@ -310,36 +324,66 @@ main.board {
     min-height: 0;
     height: 100%;
     align-items: start;
-    gap: 1rem;
     padding: 0 2rem 1rem;
 
     .column {
       flex-shrink: 0;
+      border-left: 2px solid transparent;
+      border-right: 2px solid transparent;
+      margin-left: -2px;
+      padding: 0 0.5rem;
+      height: 100%;
+      transform: translate(0px, 0px);
+      transition: transform 70ms ease-out;
+
+      &[data-over-left] {
+        border-left-color: rgb(244 66 80);
+      }
+      &[data-over-right] {
+        border-right-color: rgb(244 66 80);
+      }
+    }
+
+    .column-content {
       display: flex;
       flex-direction: column;
-      overflow: hidden;
       max-height: 100%;
       width: 20rem;
       background-color: rgb(241 245 249);
       border-color: rgb(148 163 184);
       box-shadow: 0 1px 2px 0 #94a3b8;
       border-radius: 0.75rem;
+      position: relative;
 
       .column-header {
         padding: 0.5rem;
         display: flex;
         gap: 0.5rem;
+        justify-content: space-between;
+        cursor: grab;
 
         & > button {
           text-align: left;
-          width: 100%;
+          width: unset;
           border-radius: 0.75rem;
           border-width: 1px;
           border-color: transparent;
           padding: 0.25rem 0.5rem;
           font-weight: 500;
           color: rgb(71 85 105);
+        }
+
+        .update-column-name {
           flex-grow: 1;
+
+          input[type="text"] {
+            border: 1px solid rgb(148 163 184);
+            width: 100%;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            color: black;
+          }
         }
 
         & > form {
@@ -380,6 +424,8 @@ main.board {
           cursor: grab;
           padding: 0.25rem 0.5rem;
           border-color: transparent;
+          transform: translate(0px, 0px);
+          transition: transform 40ms ease-out;
 
           &[data-over-top] {
             border-top-color: rgb(244 66 80);
@@ -460,6 +506,7 @@ main.board {
 
     .add-column {
       flex-shrink: 0;
+      margin: 0 0.5rem;
       display: flex;
       justify-content: center;
       height: 4rem;

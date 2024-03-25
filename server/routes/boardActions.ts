@@ -52,12 +52,49 @@ export const deleteBoard = createAction(
   },
 );
 
+export const updateBoardName = createAction(
+  { requiredFields: ["name"] },
+  ({ board, data }) => {
+    db.boards.update(board.id, data.name);
+    return {
+      ...board,
+      name: data.name,
+    };
+  },
+);
+
 export const createColumn = createAction(
   { requiredFields: ["name"] },
   ({ board, data }) => {
     const name = data.name;
     const id = hasProp("id", data) ? data.id : undefined;
     return db.columns.create({ id, name, boardId: board.id });
+  },
+);
+
+export const updateColumnName = createAction(
+  { requiredFields: ["columnId", "name"] },
+  ({ board, data }) => {
+    const column = db.columns.get(data.columnId, board.id);
+    if (!column) {
+      throw new NotFoundError(`Column ${data.columnId} not found`);
+    }
+
+    db.columns.update(data.columnId, data.name);
+    return { ...column, name: data.name };
+  },
+);
+
+export const moveColumn = createAction(
+  { requiredFields: ["columnId", "sortOrder"] },
+  ({ board, data }) => {
+    const { columnId, sortOrder } = data;
+    const column = db.columns.get(columnId, board.id);
+    if (!column) {
+      throw new NotFoundError(`Column ${columnId} not found`);
+    }
+    db.columns.move(column, parseInt(sortOrder));
+    return { success: true };
   },
 );
 

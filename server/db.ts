@@ -119,6 +119,9 @@ export const boards = {
       )
       .get(id, userId);
   },
+  update(id: number, name: string) {
+    db.query("UPDATE boards SET name = ? WHERE id = ?").run(name, id);
+  },
   delete(id: number) {
     db.query("DELETE FROM boards WHERE id = ?").run(id);
   },
@@ -127,11 +130,16 @@ export const boards = {
 export const columns = {
   create(column: { id?: string; name: string; boardId: number }) {
     const id = column.id || crypto.randomUUID();
-    db.query("INSERT INTO columns (id, name, boardId) VALUES (?, ?, ?)").run(
-      id,
-      column.name,
-      column.boardId,
-    );
+    const sortOrder =
+      db
+        .query<
+          { sortOrder: number },
+          number
+        >("SELECT COUNT(*) + 1 AS sortOrder FROM columns WHERE boardId = ?")
+        .get(column.boardId)?.sortOrder || 1;
+    db.query(
+      "INSERT INTO columns (id, name, boardId, sortOrder) VALUES (?, ?, ?, ?)",
+    ).run(id, column.name, column.boardId, sortOrder);
     return { id, ...column };
   },
   get(id: string, boardId: number) {
@@ -141,9 +149,12 @@ export const columns = {
           id: string;
           name: string;
           boardId: number;
+          sortOrder: number;
         },
         [string, number]
-      >("SELECT id, name, boardId FROM columns WHERE id = ? AND boardId = ?")
+      >(
+        "SELECT id, name, boardId, sortOrder FROM columns WHERE id = ? AND boardId = ?",
+      )
       .get(id, boardId);
   },
   all(boardId: number) {
@@ -153,10 +164,40 @@ export const columns = {
           id: string;
           name: string;
           boardId: number;
+          sortOrder: number;
         },
         number
-      >("SELECT id, name, boardId FROM columns WHERE boardId = ?")
+      >("SELECT id, name, boardId, sortOrder FROM columns WHERE boardId = ?")
       .all(boardId);
+  },
+  update(id: string, name: string) {
+    db.query("UPDATE columns SET name = ? WHERE id = ?").run(name, id);
+  },
+  move(column: Model.Column, sortOrder: number) {
+    // shift columns from old position down
+    db.query(
+      `
+UPDATE columns
+SET sortOrder = sortOrder - 1
+WHERE sortOrder > ? AND boardId = ? AND id != ?
+`,
+    ).run(column.sortOrder, column.boardId, column.id);
+    // shift columns from new position up
+    db.query(
+      `
+UPDATE columns
+SET sortOrder = sortOrder + 1
+WHERE sortOrder >= ? AND boardId = ? AND id != ?
+`,
+    ).run(sortOrder, column.boardId, column.id);
+    // update column
+    db.query(
+      `
+UPDATE columns
+SET sortOrder = ?
+WHERE id = ?
+`,
+    ).run(sortOrder, column.id);
   },
   delete(id: string) {
     db.query("DELETE FROM columns WHERE id = ?").run(id);
@@ -172,7 +213,7 @@ export const items = {
           { sortOrder: number },
           string
         >("SELECT COUNT(*) + 1 AS sortOrder FROM items WHERE columnId = ?")
-        .get(item.columnId)?.sortOrder || 0;
+        .get(item.columnId)?.sortOrder || 1;
     db.query(
       "INSERT INTO items (id, `text`, columnId, sortOrder) VALUES (?, ?, ?, ?)",
     ).run(id, item.text, item.columnId, sortOrder);
@@ -245,17 +286,17 @@ WHERE sortOrder > (SELECT sortOrder FROM items WHERE id = ?)
       `
 UPDATE items
 SET sortOrder = sortOrder - 1
-WHERE columnId = ? AND sortOrder > ?
+WHERE columnId = ? AND sortOrder > ? AND id != ?
 `,
-    ).run(item.columnId, item.sortOrder);
+    ).run(item.columnId, item.sortOrder, item.id);
     // shift items from new column up
     db.query(
       `
 UPDATE items
 SET sortOrder = sortOrder + 1
-WHERE columnId = ? AND sortOrder >= ?
+WHERE columnId = ? AND sortOrder >= ? AND id != ?
 `,
-    ).run(columnId, sortOrder);
+    ).run(columnId, sortOrder, item.id);
     // update item
     db.query(
       `

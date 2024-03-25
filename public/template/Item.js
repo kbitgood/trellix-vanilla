@@ -8,7 +8,7 @@
 export default function Item({ item, boardId }) {
   return `
 <li class="item" data-id="${item.id}">
-  <div draggable="true" class="item-content" ondragstart="onItemDragStart(event)">
+  <div draggable="true" class="item-content" ondrag="onItemDragStart(event)">
     <h3>${item.text}</h3>
     <div class="spacer">&nbsp;</div>
     <form 
