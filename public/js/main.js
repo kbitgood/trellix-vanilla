@@ -10,22 +10,25 @@ function htmlToElement(html) {
   return template.content.firstElementChild;
 }
 
-window.onFormSubmit = function (event) {
+window.onFormSubmit = async function (event) {
   const form = event.target;
   if (!(form instanceof HTMLFormElement)) return;
   const intent = form.intent.value;
   if (intent && typeof window[intent] === "function") {
     event.preventDefault();
     let formData = new FormData(form);
-    const modifiedFormData = window[intent](form);
-    if (modifiedFormData instanceof FormData) {
-      formData = modifiedFormData;
-    }
-    void fetch(form.action, {
+    const { promise, resolve, reject } = Promise.withResolvers();
+    window[intent](form, formData, promise);
+    const response = await fetch(form.action, {
       method: "POST",
       headers: { Accept: "application/json" },
       body: formData,
     });
+    if (response.ok) {
+      resolve(await response.json());
+    } else {
+      reject(await response.json());
+    }
   } else {
     event.preventDefault();
     console.error(
@@ -73,16 +76,28 @@ window.showUpdateBoardNameForm = function (event) {
   onShowFormButtonClick(event);
 };
 
-window.updateBoardName = function (form) {
-  const name = form.name.value;
+window.updateBoardName = function (form, formData, promise) {
+  const name = formData.get("name");
   const button = form.previousElementSibling;
+  const prevName = button.textContent;
   button.textContent = name;
   button.focus();
   hideForm(form);
+  promise.catch(() => {
+    button.textContent = prevName;
+  });
 };
 
-window.deleteBoard = function (form) {
+window.deleteBoard = function (form, _, promise) {
+  const boardCard = form.closest(".board-card");
+  const parent = boardCard.parentElement;
   form.closest(".board-card").remove();
+  promise.catch(() => {
+    const children = Array.from(parent.children);
+    children.push(boardCard);
+    children.sort((a, b) => parseInt(a.dataset.id) - parseInt(b.dataset.id));
+    parent.append(...children);
+  });
 };
 
 window.showAddColumnForm = function (event) {
@@ -94,8 +109,7 @@ window.cancelAddColumn = function (event) {
   hideForm(event.currentTarget.closest("form"));
 };
 
-window.createColumn = function (form) {
-  const formData = new FormData(form);
+window.createColumn = function (form, formData, promise) {
   formData.set("id", crypto.randomUUID());
   const column = Object.fromEntries(formData.entries());
   const columnEl = htmlToElement(Column({ column, items: [] }));
@@ -104,7 +118,9 @@ window.createColumn = function (form) {
   columnList.append(columnEl);
   main.scrollLeft = main.scrollWidth;
   form.reset();
-  return formData;
+  promise.catch(() => {
+    columnEl.remove();
+  });
 };
 
 /****************************************************
@@ -118,12 +134,16 @@ window.showUpdateColumnNameForm = function (event) {
   onShowFormButtonClick(event);
 };
 
-window.updateColumnName = function (form) {
-  const name = form.name.value;
+window.updateColumnName = function (form, formData, promise) {
+  const name = formData.get("name");
   const button = form.previousElementSibling;
+  const prevName = button.textContent;
   button.textContent = name;
   button.focus();
   hideForm(form);
+  promise.catch(() => {
+    button.textContent = prevName;
+  });
 };
 
 window.showAddItemForm = onShowFormButtonClick;
@@ -145,14 +165,32 @@ window.onAddItemKeyDown = function (event) {
   }
 };
 
-window.deleteColumn = function (form) {
+let prevColumnOrder = null;
+window.deleteColumn = function (form, _, promise) {
   const columnEl = form.closest(".column");
+  const parent = columnEl.parentElement;
+  if (!prevColumnOrder) {
+    prevColumnOrder = Array.from(parent.children).map((el) => el.dataset.id);
+  }
   columnEl.remove();
+  promise
+    .then(() => {
+      prevColumnOrder = Array.from(parent.children).map((el) => el.dataset.id);
+    })
+    .catch(() => {
+      const children = Array.from(parent.children);
+      children.push(columnEl);
+      children.sort(
+        (a, b) =>
+          prevColumnOrder.indexOf(a.dataset.id) -
+          prevColumnOrder.indexOf(b.dataset.id),
+      );
+      parent.append(...children);
+    });
 };
 
-window.createItem = function (form) {
+window.createItem = function (form, formData, promise) {
   const boardId = Number(form.action.split("/").pop());
-  const formData = new FormData(form);
   formData.set("id", crypto.randomUUID());
   const item = Object.fromEntries(formData.entries());
   const itemEl = htmlToElement(Item({ item, boardId }));
@@ -162,7 +200,9 @@ window.createItem = function (form) {
     itemList.scrollTop = itemList.scrollHeight;
   }
   form.reset();
-  return formData;
+  promise.catch(() => {
+    itemEl.remove();
+  });
 };
 
 let draggingColumn = null;
@@ -262,9 +302,34 @@ function onColumnDrop(event) {
  ***************** Item Functions *******************
  ****************************************************/
 
-window.deleteItem = function (form) {
+const prevItemOrder = new Map();
+window.deleteItem = function (form, _, promise) {
   const itemEl = form.closest(".item");
+  const parent = itemEl.parentElement;
+  if (!prevItemOrder.has(parent.dataset.id)) {
+    prevItemOrder.set(
+      parent.dataset.id,
+      Array.from(parent.children).map((el) => el.dataset.id),
+    );
+  }
   itemEl.remove();
+  promise
+    .then(() => {
+      prevItemOrder.set(
+        parent.dataset.id,
+        Array.from(parent.children).map((el) => el.dataset.id),
+      );
+    })
+    .catch(() => {
+      const children = Array.from(parent.children);
+      children.push(itemEl);
+      children.sort(
+        (a, b) =>
+          prevItemOrder.get(parent.dataset.id).indexOf(a.dataset.id) -
+          prevItemOrder.get(parent.dataset.id).indexOf(b.dataset.id),
+      );
+      parent.append(...children);
+    });
 };
 
 let draggingItem = null;

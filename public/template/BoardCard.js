@@ -7,7 +7,7 @@
  */
 export default function BoardCard({ board }) {
   return `
-<a class="board-card" href="/board/${board.id}" style="border-color: ${board.color}">
+<a class="board-card" href="/board/${board.id}" data-id="${board.id}" style="border-color: ${board.color}">
   <div>${board.name}</div>
   <form method="post" action="/board/${board.id}" class="delete-board" onsubmit="onFormSubmit(event)">
     <input type="hidden" name="intent" value="deleteBoard" />
