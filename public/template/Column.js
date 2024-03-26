@@ -2,8 +2,8 @@ import Item from "./Item.js";
 
 /**
  * @param {{
- *   column: Model.Column;
- *   items?: Model.Item[]
+ *   column: ColumnData;
+ *   items?: ItemData[]
  * }} params
  */
 export default function Column({ column, items = [] }) {

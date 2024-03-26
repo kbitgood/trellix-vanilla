@@ -1,7 +1,8 @@
 import Layout from "./Layout.ts";
 import BoardCard from "../../public/template/BoardCard.js";
+import type { BoardData } from "../model.ts";
 
-export default function HomePage({ boards }: { boards: Model.Board[] }) {
+export default function HomePage({ boards }: { boards: BoardData[] }) {
   return Layout(
     {
       loggedIn: true,

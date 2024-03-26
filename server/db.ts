@@ -3,6 +3,7 @@ import { join } from "path";
 import { Database } from "bun:sqlite";
 import seed from "./seed.ts";
 import { BadRequestError } from "./error.ts";
+import type { BoardData, ColumnData, ItemData, UserData } from "./model.ts";
 
 const litefs = join(
   process.env.NODE_ENV === "production" ? "/var/lib" : ".",
@@ -57,7 +58,7 @@ export const session = {
   logout(token: string) {
     db.query("DELETE FROM sessions WHERE token = ?").run(token);
   },
-  getUser(token: string | undefined) {
+  getUser(token: string | undefined): UserData | null {
     if (!token) return null;
     const result = db
       .query<{ id: number; username: string; expiresAt: number }, string>(
@@ -101,29 +102,17 @@ export const boards = {
   all(userId: number) {
     return db
       .query<
-        {
-          id: number;
-          name: string;
-          color: string;
-          userId: number;
-        },
+        BoardData,
         number
-      >("SELECT id, name, color, userId FROM boards WHERE userId = ?")
+      >("SELECT id, name, color FROM boards WHERE userId = ?")
       .all(userId);
   },
   get(id: number, userId: number) {
     return db
       .query<
-        {
-          id: number;
-          name: string;
-          color: string;
-          userId: number;
-        },
+        BoardData,
         [number, number]
-      >(
-        "SELECT id, name, color, userId FROM boards WHERE id = ? AND userId = ?",
-      )
+      >("SELECT id, name, color FROM boards WHERE id = ? AND userId = ?")
       .get(id, userId);
   },
   update(id: number, name: string) {
@@ -152,27 +141,15 @@ export const columns = {
   get(id: string, boardId: number) {
     return db
       .query<
-        {
-          id: string;
-          name: string;
-          boardId: number;
-          sortOrder: number;
-        },
+        ColumnData,
         [string, number]
-      >(
-        "SELECT id, name, boardId, sortOrder FROM columns WHERE id = ? AND boardId = ?",
-      )
+      >("SELECT id, name, boardId, sortOrder FROM columns WHERE id = ? AND boardId = ?")
       .get(id, boardId);
   },
   all(boardId: number) {
     return db
       .query<
-        {
-          id: string;
-          name: string;
-          boardId: number;
-          sortOrder: number;
-        },
+        ColumnData,
         number
       >("SELECT id, name, boardId, sortOrder FROM columns WHERE boardId = ?")
       .all(boardId);
@@ -180,7 +157,7 @@ export const columns = {
   update(id: string, name: string) {
     db.query("UPDATE columns SET name = ? WHERE id = ?").run(name, id);
   },
-  move(column: Model.Column, sortOrder: number) {
+  move(column: ColumnData, sortOrder: number) {
     // shift columns from old position down
     db.query(
       `
@@ -229,44 +206,22 @@ export const items = {
   get(id: string, columnId: string) {
     return db
       .query<
-        {
-          id: string;
-          text: string;
-          columnId: string;
-          sortOrder: number;
-        },
+        ItemData,
         [string, string]
-      >(
-        "SELECT id, `text`, columnId, sortOrder FROM items WHERE id = ? AND columnId = ?",
-      )
+      >("SELECT id, `text`, columnId, sortOrder FROM items WHERE id = ? AND columnId = ?")
       .get(id, columnId);
   },
   getByBoardId(id: string, boardId: number) {
     return db
       .query<
-        {
-          id: string;
-          text: string;
-          columnId: string;
-          sortOrder: number;
-        },
+        ItemData,
         [string, number]
-      >(
-        "SELECT i.id, i.`text`, i.columnId, i.sortOrder FROM items i JOIN columns c ON c.id = i.columnId WHERE i.id = ? AND c.boardId = ?",
-      )
+      >("SELECT i.id, i.`text`, i.columnId, i.sortOrder FROM items i JOIN columns c ON c.id = i.columnId WHERE i.id = ? AND c.boardId = ?")
       .get(id, boardId);
   },
   all(boardId: number) {
     return db
-      .query<
-        {
-          id: string;
-          text: string;
-          columnId: string;
-          sortOrder: number;
-        },
-        number
-      >(
+      .query<ItemData, number>(
         `
 SELECT i.id, i.text, i.columnId, i.sortOrder
 FROM items i
@@ -287,7 +242,7 @@ WHERE sortOrder > (SELECT sortOrder FROM items WHERE id = ?)
     ).run(id);
     db.query("DELETE FROM items WHERE id = ?").run(id);
   },
-  move(item: Model.Item, columnId: string, sortOrder: number) {
+  move(item: ItemData, columnId: string, sortOrder: number) {
     // shift items from old column down
     db.query(
       `

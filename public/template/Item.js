@@ -1,7 +1,7 @@
 /**
  * @param {{
- *   item: Model.Item,
- *   boardId: Pick<Model.Board, 'id'>
+ *   item: ItemData,
+ *   boardId: Pick<BoardData, 'id'>
  * }} props
  * @returns {string}
  */

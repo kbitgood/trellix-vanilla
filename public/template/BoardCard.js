@@ -1,8 +1,6 @@
 /**
  *
- * @param {{
- *   board: Model.Board
- * }} params
+ * @param {{board: BoardData}} params
  * @returns string
  */
 export default function BoardCard({ board }) {

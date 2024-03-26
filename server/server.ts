@@ -3,6 +3,7 @@ import * as db from "./db.ts";
 import { HTTPError, NotFoundError, UnauthorizedError } from "./error.ts";
 import { clearCookieStr, parseCookies } from "./cookie.ts";
 import type { HeadersInit } from "undici-types/fetch";
+import type { UserData } from "./model.ts";
 
 declare global {
   interface Request {
@@ -59,6 +60,7 @@ export function startServer() {
       }
       return response;
     },
+    error: errorHandler,
   });
   console.log("Server started at", server.url.href);
 }
@@ -66,7 +68,7 @@ export function startServer() {
 async function handleRoutes(
   routes: RouteDefinition[],
   request: Request,
-  user: ReturnType<typeof db.session.getUser>,
+  user: UserData | null,
 ): Promise<Response | null> {
   const url = new URL(request.url);
   for (const route of routes) {
@@ -89,7 +91,7 @@ async function handleRoutes(
   return null;
 }
 
-function errorHandler(e: unknown, request: Request): Response {
+function errorHandler(e: unknown, request?: Request): Response {
   console.error(e);
   let name =
     "Internal Server " +
@@ -108,7 +110,7 @@ function errorHandler(e: unknown, request: Request): Response {
     name = e.statusText;
   }
 
-  if (request.headers.get("Accept")?.includes("application/json")) {
+  if (request?.headers.get("Accept")?.includes("application/json")) {
     return Response.json({ success: false, error: { message } }, { status });
   }
   if (status === 401) {
@@ -139,15 +141,9 @@ type RouteDefinition<Public extends boolean = boolean> = {
     }
 );
 
-type ActionDefinition = {
-  pattern: RegExp;
-  intent: string;
-  handler: (ctx: RouteContext<false>) => Promise<Response> | Response;
-};
-
 const routes: RouteDefinition[] = [];
 
-export function createRoute<Public extends boolean = false>(
+export function createRouteHelper<Public extends boolean = false>(
   route: RouteDefinition<Public>,
 ) {
   routes.push(route);

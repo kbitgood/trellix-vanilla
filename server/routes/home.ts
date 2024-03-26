@@ -1,9 +1,9 @@
-import { createRoute } from "../server.ts";
+import { createRouteHelper } from "../server.ts";
 import * as db from "../db.ts";
 import HomePage from "../template/HomePage.ts";
 import { BadRequestError, NotFoundError } from "../error.ts";
 
-createRoute({
+createRouteHelper({
   methods: ["GET"],
   pattern: /^\/home$/i,
   handler: ({ user }) => {
@@ -17,7 +17,7 @@ createRoute({
   },
 });
 
-createRoute({
+createRouteHelper({
   methods: ["POST"],
   pattern: /^\/boards$/i,
   handler: async ({ request, user }) => {
@@ -44,7 +44,7 @@ createRoute({
     }
   },
 });
-createRoute({
+createRouteHelper({
   methods: ["GET"],
   pattern: /^\/boards$/i,
   handler: ({ request, user }) => {

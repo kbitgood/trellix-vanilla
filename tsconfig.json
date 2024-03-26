@@ -19,5 +19,5 @@
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["server/**/*.ts","types.d.ts"]
+  "include": ["server/**/*.ts"]
 }

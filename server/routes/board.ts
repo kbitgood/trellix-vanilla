@@ -1,4 +1,4 @@
-import { createRoute } from "../server.ts";
+import { createRouteHelper } from "../server.ts";
 import * as db from "../db.ts";
 import { BadRequestError, NotFoundError } from "../error.ts";
 import BoardPage from "../template/BoardPage.ts";
@@ -6,7 +6,7 @@ import * as boardActions from "./boardActions.ts";
 type Intents = keyof typeof boardActions;
 const intents = Object.keys(boardActions) as Intents[];
 
-createRoute({
+createRouteHelper({
   methods: ["GET"],
   pattern: /^\/board\/(\d+)$/i,
   handler: ({ request, urlParams, user }) => {
@@ -28,7 +28,7 @@ createRoute({
   },
 });
 
-createRoute({
+createRouteHelper({
   methods: ["POST"],
   pattern: /^\/board\/(\d+)$/i,
   handler: async (ctx) => {

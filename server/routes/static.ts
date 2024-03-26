@@ -1,7 +1,7 @@
-import { createRoute } from "../server.ts";
+import { createRouteHelper } from "../server.ts";
 import { NotFoundError } from "../error.ts";
 
-createRoute({
+createRouteHelper({
   methods: ["GET"],
   pattern: /\.[^/]+$/i,
   public: true,

@@ -1,4 +1,4 @@
-import { createRoute } from "../server.ts";
+import { createRouteHelper } from "../server.ts";
 import SignupPage from "../template/SignupPage.ts";
 import LoginPage from "../template/LoginPage.ts";
 import SplashPage from "../template/SplashPage.ts";
@@ -6,7 +6,7 @@ import { BadRequestError } from "../error.ts";
 import * as db from "../db.ts";
 import { clearCookieStr, createCookieStr } from "../cookie.ts";
 
-createRoute({
+createRouteHelper({
   methods: ["GET"],
   pattern: /^\/(login|signup)?$/i,
   public: true,
@@ -29,7 +29,7 @@ createRoute({
     });
   },
 });
-createRoute({
+createRouteHelper({
   methods: ["POST"],
   pattern: /^\/(login|signup)$/i,
   public: true,
@@ -69,7 +69,7 @@ createRoute({
     });
   },
 });
-createRoute({
+createRouteHelper({
   methods: ["GET", "POST"],
   pattern: /^\/logout$/i,
   public: true,
