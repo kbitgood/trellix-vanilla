@@ -32,8 +32,9 @@ I noticed Ryan's Trellix demo was missing some features. I'd give his demo an A-
 
 I would love to come back to this and add a couple improvements as a challenge to myself:
 
-- [ ] Client side routing
-   - All the building blocks are there to make the page navigations client side. I don't think this would take much and would make it even snappier. 
+- [x] Client side routing
+   - All the building blocks are there to make the page navigations client side. I don't think this would take much and would make it even snappier.
+   - *UPDATE* I added this! But just for the logged in routes. Once logged in every single interaction is now client side and optimistic, so it feels so good and fast.
 - [ ] Make it local first
    - I love the idea of an app like this being able to completely work on my machine with my network disconnected. All the functionality is local with optimistic updates anyway.
 - [ ] Make it work with javascript disabled
