@@ -30,53 +30,7 @@ color: rgb(203 213 225);
       anything quite as Ryan's demo (or at least enough to get an A from him).
       So I picked up the challenge.
     </p>
-    <p>Other Trellix Demos:</p>
-    <ul>
-      <li>
-        NextJS -
-        <a
-          href="https://x.com/ryanflorence/status/1765179463497892117?s=20"
-          target="_blank"
-          >Ryan's reaction</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/Rich-Harris/sveltekit-movies-demo"
-          target="_blank"
-          >Svelte</a
-        >
-        -
-        <a
-          href="https://x.com/ryanflorence/status/1766124524444250124?s=20"
-          target="_blank"
-          >Ryan's reaction</a
-        >
-      </li>
-      <li>
-        <a href="https://github.com/tkdodo/trellix-query" target="_blank"
-          >Tanstack</a
-        >
-        -
-        <a
-          href="https://x.com/ryanflorence/status/1767245924299071718?s=20"
-          target="_blank"
-          >Ryan's reaction</a
-        >
-      </li>
-      <li>
-        <a href="https://github.com/vimtor/trellix-replicache" target="_blank"
-          >Replicache</a
-        >
-        -
-        <a
-          href="https://x.com/ryanflorence/status/1767656588360421454?s=20"
-          target="_blank"
-          >Ryan's reaction</a
-        >
-      </li>
-    </ul>
-    <h2>Goal: Zero Dependancies</h2>
+    <h1>Goal: Zero Dependancies</h1>
     <p>
       I am not a framework author, so the goal with this demo is to see if I can
       make it without a framework. One further, I thought I could make it
@@ -99,8 +53,9 @@ color: rgb(203 213 225);
       with Remix.
     </p>
     <p>Obviously.</p>
-    <h2>Tell me what you think</h2>
-    <p>If you want to play around, click sign up above!</p>
+    <h1>Tell me what you think</h1>
+    <p>If you want to play around, just <a href="/signup">Sign Up</a>. It's free!</p>
+    <p>Check out the <a href="https://github.com/kbitgood/trellix-vanilla" target="_blank">source code on github</a>.</p>
     <p>
       Roast me on twitter if I does't live up to Ryan's demo:
       <a href="https://twitter.com/kbitgood" target="_blank">@kbitgood</a>

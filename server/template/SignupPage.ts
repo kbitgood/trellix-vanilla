@@ -14,7 +14,7 @@ export default function SignupPage() {
     ${LoginForm({ login: false })}
     <h2>Privacy Notice</h2>
     <p>
-      This won't be used for anything besides this stupid little demo app.
+      Your data won't be used for anything besides this stupid little demo app.
       You just need to be able to log in so that you can see your boards
       and no one else's. But common sense rules still apply. Don't put any
       personally identifiable information in here. Don't reuse passwords.

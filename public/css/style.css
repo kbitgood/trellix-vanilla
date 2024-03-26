@@ -174,11 +174,12 @@ main.splash {
 
   &.splash {
     article {
-      margin-top: 1rem;
+      margin-top: 0.5rem;
       h1 {
         color: white;
         font-size: 2rem;
         line-height: 4rem;
+        margin: 2rem 0 2rem;
       }
       h2 {
         color: white;
