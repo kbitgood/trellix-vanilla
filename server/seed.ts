@@ -61,13 +61,7 @@ export default function seed(db: Database) {
     )
     .all()
     .some(({ name, sql }) => {
-      const diff =
-        removeWhitespace(queries[name] ?? "") !== removeWhitespace(sql);
-      if (diff) {
-        console.log("diff", name);
-        console.log(removeWhitespace(queries[name] ?? ""));
-        console.log(removeWhitespace(sql));
-      }
+      return removeWhitespace(queries[name] ?? "") !== removeWhitespace(sql);
     });
   if (shouldDelete) {
     console.log(
