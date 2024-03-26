@@ -1,9 +1,9 @@
-This is a demo app because I couldn't resist trying. I saw the challenge that [Ryan Florence]([https://twitter.com/ryanflorence](https://x.com/remix_run/status/1747711520510038035?s=20)) put out for other framework authors, or anyone, to remake his [Trellix](https://github.com/remix-run/example-trellix) demo (inspired by Trello) and see if they can make it better than [Remix](https://remix.run/). No one was making anything quite as Ryan's demo (or at least enough to get an A from him). So I picked up the challenge.
+This is a demo app because I couldn't resist trying. I saw the challenge that [Ryan Florence](https://x.com/remix_run/status/1747711520510038035?s=20) put out for other framework authors, or anyone, to remake his [Trellix](https://github.com/remix-run/example-trellix) demo (inspired by Trello) and see if they can make it better than [Remix](https://remix.run/). No one was making anything quite as Ryan's demo (or at least enough to get an A from him). So I picked up the challenge.
 
 Other Trellix Demos:
 - NextJS - [Ryan's reaction](https://x.com/ryanflorence/status/1765179463497892117?s=20)
-- [Svelte](https://t.co/wibWfhh40D) - [Ryan's reaction](https://x.com/ryanflorence/status/1766124524444250124?s=20)
-- [Tanstack](https://t.co/0u5993eweh) - [Ryan's reaction](https://x.com/ryanflorence/status/1767245924299071718?s=20)
+- [Svelte](https://github.com/Rich-Harris/sveltekit-movies-demo) - [Ryan's reaction](https://x.com/ryanflorence/status/1766124524444250124?s=20)
+- [Tanstack](https://github.com/tkdodo/trellix-query) - [Ryan's reaction](https://x.com/ryanflorence/status/1767245924299071718?s=20)
 - [Replicache](https://t.co/TmEO7l3mXa) - [Ryan's reaction](https://x.com/ryanflorence/status/1767656588360421454?s=20)
 
 ## Goal: Zero Dependancies

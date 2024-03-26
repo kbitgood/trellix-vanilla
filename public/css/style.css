@@ -174,7 +174,17 @@ main.splash {
 
   &.splash {
     article {
-      margin-bottom: 0;
+      margin-top: 1rem;
+      h1 {
+        color: white;
+        font-size: 2rem;
+        line-height: 4rem;
+      }
+      h2 {
+        color: white;
+        font-size: 1.25rem;
+        text-align: center;
+      }
     }
   }
 
@@ -197,7 +207,7 @@ main.splash {
     }
   }
 
-  footer {
+  div.sign-in-buttons {
     display: flex;
     justify-content: space-evenly;
     width: 100%;
