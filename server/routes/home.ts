@@ -2,6 +2,7 @@ import { createRouteHelper } from "../server.ts";
 import * as db from "../db.ts";
 import HomePage from "../template/HomePage.ts";
 import { BadRequestError, NotFoundError } from "../error.ts";
+import { hasProp } from "./lib.ts";
 
 createRouteHelper({
   methods: ["GET"],
@@ -22,20 +23,14 @@ createRouteHelper({
   pattern: /^\/boards$/i,
   handler: async ({ request, user }) => {
     const formData = Object.fromEntries((await request.formData()).entries());
-    if (
-      typeof formData !== "object" ||
-      formData === null ||
-      !("name" in formData) ||
-      typeof formData.name !== "string" ||
-      !("color" in formData) ||
-      typeof formData.color !== "string"
-    ) {
+    if (!hasProp("name", formData) || !hasProp("color", formData)) {
       throw new BadRequestError("Invalid form data");
     }
     const { name, color } = formData;
-    const board = db.boards.create({ name, color, userId: user.id });
+    const id = hasProp("id", formData) ? formData.id : undefined;
+    const board = db.boards.create({ id, name, color, userId: user.id });
     if (request.headers.get("Accept")?.includes("application/json")) {
-      return Response.json(board, { status: 201 });
+      return Response.json({ board, columns: [], items: [] }, { status: 201 });
     } else {
       return new Response("", {
         status: 302,

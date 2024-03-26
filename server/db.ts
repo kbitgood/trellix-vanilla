@@ -5,6 +5,15 @@ import seed from "./seed.ts";
 import { BadRequestError } from "./error.ts";
 import type { BoardData, ColumnData, ItemData, UserData } from "./model.ts";
 
+function generateId() {
+  const chars =
+    "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  return Array(6)
+    .fill(0)
+    .map(() => chars[Math.floor(Math.random() * chars.length)])
+    .join("");
+}
+
 const litefs = join(
   process.env.NODE_ENV === "production" ? "/var/lib" : ".",
   "litefs",
@@ -22,10 +31,15 @@ export const user = {
       .query("SELECT username FROM users WHERE username = ?")
       .get(username.toLowerCase());
   },
-  create(username: string, password: string) {
-    const encryptedPassword = Bun.password.hashSync(password);
-    db.query("INSERT INTO users (username, password) VALUES (?, ?)").run(
-      username.toLowerCase(),
+  create(user: { id?: string; username: string; password: string }) {
+    const encryptedPassword = Bun.password.hashSync(user.password);
+    let id = user.id || generateId();
+    while (db.query("SELECT id FROM users WHERE id = ?").get(id)) {
+      id = generateId();
+    }
+    db.query("INSERT INTO users (id, username, password) VALUES (?, ?, ?)").run(
+      id,
+      user.username.toLowerCase(),
       encryptedPassword,
     );
   },
@@ -36,7 +50,7 @@ export const session = {
     // get user
     const user = db
       .query<
-        { id: number; password: string },
+        { id: string; password: string },
         string
       >("SELECT id, password FROM users WHERE username = ?")
       .get(username.toLowerCase());
@@ -61,7 +75,7 @@ export const session = {
   getUser(token: string | undefined): UserData | null {
     if (!token) return null;
     const result = db
-      .query<{ id: number; username: string; expiresAt: number }, string>(
+      .query<{ id: string; username: string; expiresAt: number }, string>(
         `
 SELECT u.id, u.username, s.expiresAt
 FROM sessions s
@@ -88,49 +102,55 @@ function clearExpiredSessions() {
 clearExpiredSessions();
 
 export const boards = {
-  create(board: { name: string; color: string; userId: number }) {
-    db.query("INSERT INTO boards (name, color, userId) VALUES (?, ?, ?)").run(
-      board.name,
-      board.color,
-      board.userId,
-    );
-    const { id } = db
-      .query<{ id: number }, null>("SELECT last_insert_rowid() AS id")
-      .get(null)!;
-    return { id, ...board };
+  create(board: { id?: string; name: string; color: string; userId: string }) {
+    let id = board.id || generateId();
+    while (db.query("SELECT id FROM boards WHERE id = ?").get(id)) {
+      id = generateId();
+    }
+    db.query(
+      "INSERT INTO boards (id, name, color, userId) VALUES (?, ?, ?, ?)",
+    ).run(id, board.name, board.color, board.userId);
+    return { id, name: board.name, color: board.color };
   },
-  all(userId: number) {
+  all(userId: string) {
     return db
       .query<
         BoardData,
-        number
+        string
       >("SELECT id, name, color FROM boards WHERE userId = ?")
       .all(userId);
   },
-  get(id: number, userId: number) {
+  get(id: string, userId: string) {
     return db
       .query<
         BoardData,
-        [number, number]
+        [string, string]
       >("SELECT id, name, color FROM boards WHERE id = ? AND userId = ?")
       .get(id, userId);
   },
-  update(id: number, name: string) {
+  update(id: string, name: string) {
     db.query("UPDATE boards SET name = ? WHERE id = ?").run(name, id);
   },
-  delete(id: number) {
+  delete(id: string) {
+    db.query(
+      "DELETE FROM items WHERE columnId IN (SELECT id FROM columns WHERE boardId = ?)",
+    ).run(id);
+    db.query("DELETE FROM columns WHERE boardId = ?").run(id);
     db.query("DELETE FROM boards WHERE id = ?").run(id);
   },
 };
 
 export const columns = {
-  create(column: { id?: string; name: string; boardId: number }) {
-    const id = column.id || crypto.randomUUID();
+  create(column: { id?: string; name: string; boardId: string }) {
+    let id = column.id || generateId();
+    while (db.query("SELECT id FROM columns WHERE id = ?").get(id)) {
+      id = generateId();
+    }
     const sortOrder =
       db
         .query<
           { sortOrder: number },
-          number
+          string
         >("SELECT COUNT(*) + 1 AS sortOrder FROM columns WHERE boardId = ?")
         .get(column.boardId)?.sortOrder || 1;
     db.query(
@@ -138,19 +158,19 @@ export const columns = {
     ).run(id, column.name, column.boardId, sortOrder);
     return { id, ...column };
   },
-  get(id: string, boardId: number) {
+  get(id: string, boardId: string) {
     return db
       .query<
         ColumnData,
-        [string, number]
+        [string, string]
       >("SELECT id, name, boardId, sortOrder FROM columns WHERE id = ? AND boardId = ?")
       .get(id, boardId);
   },
-  all(boardId: number) {
+  all(boardId: string) {
     return db
       .query<
         ColumnData,
-        number
+        string
       >("SELECT id, name, boardId, sortOrder FROM columns WHERE boardId = ?")
       .all(boardId);
   },
@@ -184,13 +204,17 @@ WHERE id = ?
     ).run(sortOrder, column.id);
   },
   delete(id: string) {
+    db.query("DELETE FROM items WHERE columnId = ?").run(id);
     db.query("DELETE FROM columns WHERE id = ?").run(id);
   },
 };
 
 export const items = {
   create(item: { id?: string; text: string; columnId: string }) {
-    const id = item.id || crypto.randomUUID();
+    let id = item.id || generateId();
+    while (db.query("SELECT id FROM items WHERE id = ?").get(id)) {
+      id = generateId();
+    }
     const sortOrder =
       db
         .query<
@@ -211,17 +235,17 @@ export const items = {
       >("SELECT id, `text`, columnId, sortOrder FROM items WHERE id = ? AND columnId = ?")
       .get(id, columnId);
   },
-  getByBoardId(id: string, boardId: number) {
+  getByBoardId(id: string, boardId: string) {
     return db
       .query<
         ItemData,
-        [string, number]
+        [string, string]
       >("SELECT i.id, i.`text`, i.columnId, i.sortOrder FROM items i JOIN columns c ON c.id = i.columnId WHERE i.id = ? AND c.boardId = ?")
       .get(id, boardId);
   },
-  all(boardId: number) {
+  all(boardId: string) {
     return db
-      .query<ItemData, number>(
+      .query<ItemData, string>(
         `
 SELECT i.id, i.text, i.columnId, i.sortOrder
 FROM items i

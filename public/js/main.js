@@ -1,5 +1,7 @@
 import Column from "../template/Column.js";
 import Item from "../template/Item.js";
+import Board from "../template/Board.js";
+import Home from "../template/Home.js";
 
 /****************************************************
  ******************** Utilities *********************
@@ -18,7 +20,15 @@ window.onFormSubmit = async function (event) {
     event.preventDefault();
     let formData = new FormData(form);
     const { promise, resolve, reject } = Promise.withResolvers();
+    const pathname = document.location.pathname;
+    const prevState = loadData(pathname);
     window[intent](form, formData, promise);
+    if (pathname === document.location.pathname) {
+      const nextState = getPageState();
+      if (nextState) {
+        saveData(pathname, nextState);
+      }
+    }
     const response = await fetch(form.action, {
       method: "POST",
       headers: { Accept: "application/json" },
@@ -27,6 +37,9 @@ window.onFormSubmit = async function (event) {
     if (response.ok) {
       resolve(await response.json());
     } else {
+      if (prevState) {
+        saveData(pathname, prevState);
+      }
       reject(await response.json());
     }
   } else {
@@ -65,9 +78,173 @@ function onShowFormButtonClick(event) {
   form.addEventListener("focusout", onFormFocusOut);
 }
 
+function generateId() {
+  const chars =
+    "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  return Array(6)
+    .fill(0)
+    .map(() => chars[Math.floor(Math.random() * chars.length)])
+    .join("");
+}
+
+/****************************************************
+ ******************** Data Store *******************
+ ****************************************************/
+const ttl = 1000 * 60 * 60 * 24;
+function saveData(key, data) {
+  data._lastSavedAt ||= Date.now();
+  localStorage.setItem(key, JSON.stringify(data, null, 2));
+}
+function loadData(key) {
+  try {
+    const data = JSON.parse(localStorage.getItem(key) ?? "null");
+    if (data && data._lastSavedAt > Date.now() - ttl) {
+      return data;
+    } else {
+      localStorage.removeItem(key);
+      return null;
+    }
+  } catch (e) {
+    localStorage.removeItem(key);
+    return null;
+  }
+}
+
+function deleteData(key) {
+  localStorage.removeItem(key);
+}
+
+/****************************************************
+ **************** Router Functions ******************
+ ****************************************************/
+window.addEventListener("popstate", function (event) {
+  const path = document.location.pathname;
+  if (path === "/home") {
+    const pageData = loadData(path);
+    if (pageData) {
+      renderHomePage(pageData);
+      event.preventDefault();
+      return;
+    }
+  } else if (path.match(/^\/board\/[0-9a-zA-Z]+$/)) {
+    const pageData = loadData(path);
+    if (pageData) {
+      renderBoardPage(pageData);
+      event.preventDefault();
+      return;
+    }
+  }
+  window.location.href = document.location.href + "";
+});
+
+function onPageLoad() {
+  if (document.location.pathname.match(/^\/board\/[0-9a-zA-Z]+$/)) {
+    saveData(document.location.pathname, getPageState());
+    if (document.querySelectorAll(".column").length === 0) {
+      document.querySelector(".add-column").click();
+    }
+  } else if (document.location.pathname === "/home") {
+    saveData(document.location.pathname, getPageState());
+    document.querySelector("#new-board input[type=text]").focus();
+  }
+}
+
+document.addEventListener("DOMContentLoaded", onPageLoad);
+
+function renderBoardPage(pageData) {
+  const boardEl = htmlToElement(Board(pageData));
+  const main = document.querySelector("main");
+  main.replaceWith(boardEl);
+  document.body.style.backgroundColor = pageData.board.color;
+  onPageLoad();
+}
+
+function renderHomePage(pageData) {
+  const main = document.querySelector("main");
+  main.replaceWith(htmlToElement(Home(pageData)));
+  document.body.style.backgroundColor = "";
+  onPageLoad();
+}
+
+window.onBoardCardClick = function (event) {
+  if (event.target.closest("form")) return;
+  const pageData = loadData(new URL(event.currentTarget.href).pathname);
+  if (pageData) {
+    event.preventDefault();
+    window.history.pushState({}, "", event.currentTarget.href);
+    renderBoardPage(pageData);
+  }
+};
+
+window.onHomeLinkClick = function (event) {
+  const pageData = loadData("/home");
+  if (pageData) {
+    event.preventDefault();
+    window.history.pushState({}, "", "/home");
+    renderHomePage(pageData);
+  }
+};
+
 /****************************************************
  **************** Board Functions ******************
  ****************************************************/
+
+window.createBoard = function (form, formData, promise) {
+  formData.set("id", generateId());
+  const { intent, ...board } = Object.fromEntries(formData.entries());
+  const homePageData = loadData("/home");
+  homePageData.boards.push(board);
+  saveData("/home", homePageData);
+  const pageData = { board, columns: [], items: [] };
+  saveData(`/board/${board.id}`, pageData);
+  window.history.pushState({ board }, "", `/board/${board.id}`);
+  renderBoardPage(pageData);
+  promise.catch(() => {
+    deleteData(`/board/${board.id}`);
+    alert("An error occurred while creating the board. Please try again.");
+    window.location.href = "/home";
+  });
+};
+
+function getPageState() {
+  if (document.location.pathname.match(/\/board\/[0-9a-zA-Z]+/)) {
+    const board = {
+      id: document.location.pathname.split("/").pop(),
+      name: document.querySelector("main h1").textContent.trim(),
+      color: document.body.style.backgroundColor,
+    };
+    const columns = [];
+    const items = [];
+    document.querySelectorAll(".column").forEach((column, index) => {
+      columns.push({
+        id: column.dataset.id,
+        name: column.querySelector(".column-name").textContent.trim(),
+        boardId: board.id,
+        sortOrder: index + 1,
+      });
+      column.querySelectorAll(".item").forEach((item, index) => {
+        items.push({
+          id: item.dataset.id,
+          text: item.textContent,
+          columnId: column.dataset.id,
+          sortOrder: index + 1,
+        });
+      });
+    });
+    return { board, columns, items };
+  } else if (document.location.pathname === "/home") {
+    const boards = [];
+    document.querySelectorAll(".board-card").forEach((boardCard) => {
+      boards.push({
+        id: boardCard.dataset.id,
+        name: boardCard.textContent.trim(),
+        color: boardCard.style.borderBottomColor,
+      });
+    });
+    return { boards };
+  }
+  return null;
+}
 
 window.showUpdateBoardNameForm = function (event) {
   const button = event.currentTarget;
@@ -91,11 +268,15 @@ window.updateBoardName = function (form, formData, promise) {
 window.deleteBoard = function (form, _, promise) {
   const boardCard = form.closest(".board-card");
   const parent = boardCard.parentElement;
-  form.closest(".board-card").remove();
+  const boardData = loadData(`/board/${boardCard.dataset.id}`);
+  if (boardData) {
+    deleteData(`/board/${boardCard.dataset.id}`);
+  }
+  boardCard.remove();
   promise.catch(() => {
+    saveData(`/board/${boardCard.dataset.id}`, boardData);
     const children = Array.from(parent.children);
     children.push(boardCard);
-    children.sort((a, b) => parseInt(a.dataset.id) - parseInt(b.dataset.id));
     parent.append(...children);
   });
 };
@@ -110,7 +291,7 @@ window.cancelAddColumn = function (event) {
 };
 
 window.createColumn = function (form, formData, promise) {
-  formData.set("id", crypto.randomUUID());
+  formData.set("id", generateId());
   const column = Object.fromEntries(formData.entries());
   const columnEl = htmlToElement(Column({ column, items: [] }));
   const main = form.closest("main");
@@ -190,8 +371,8 @@ window.deleteColumn = function (form, _, promise) {
 };
 
 window.createItem = function (form, formData, promise) {
-  const boardId = Number(form.action.split("/").pop());
-  formData.set("id", crypto.randomUUID());
+  const boardId = form.action.split("/").pop();
+  formData.set("id", generateId());
   const item = Object.fromEntries(formData.entries());
   const itemEl = htmlToElement(Item({ item, boardId }));
   const itemList = form.parentElement?.querySelector(".item-list");
@@ -266,7 +447,7 @@ function onColumnDrop(event) {
       over.closest(".column-list").append(draggingColumn);
     }
 
-    const boardId = Number(document.location.pathname.split("/").pop());
+    const boardId = document.location.pathname.split("/").pop();
     const formData = new FormData();
     formData.set("intent", "moveColumn");
     formData.set("columnId", draggingColumn.dataset.id);
@@ -415,7 +596,7 @@ function onItemDrop(event) {
       over.closest(".item-list").append(draggingItem);
     }
 
-    const boardId = Number(document.location.pathname.split("/").pop());
+    const boardId = document.location.pathname.split("/").pop();
     const formData = new FormData();
     const columnEl = draggingItem.closest(".column");
     formData.set("intent", "moveItem");
@@ -447,13 +628,4 @@ function onItemDrop(event) {
 
   over.removeAttribute("data-over-top");
   over.removeAttribute("data-over-bottom");
-}
-
-/****************************************************
- ***************** initialization *******************
- ****************************************************/
-if (document.location.pathname.match(/\/board\/\d+/)) {
-  if (document.querySelectorAll(".column").length === 0) {
-    document.querySelector(".add-column").click();
-  }
 }

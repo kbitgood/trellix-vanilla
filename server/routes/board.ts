@@ -8,19 +8,20 @@ const intents = Object.keys(boardActions) as Intents[];
 
 createRouteHelper({
   methods: ["GET"],
-  pattern: /^\/board\/(\d+)$/i,
+  pattern: /^\/board\/([a-zA-Z0-9]+)$/i,
   handler: ({ request, urlParams, user }) => {
-    const id = parseInt(urlParams[0]);
+    const id = urlParams[0];
     const board = db.boards.get(id, user.id);
     if (!board) {
       throw new NotFoundError(`Board ${id} not found`);
     }
+    const columns = db.columns.all(id);
+    const items = db.items.all(id);
+    const pageData = { board, columns, items };
     if (request.headers.get("Accept")?.includes("application/json")) {
-      return Response.json(board, { status: 201 });
+      return Response.json(pageData, { status: 201 });
     } else {
-      const columns = db.columns.all(id);
-      const items = db.items.all(id);
-      const html = BoardPage({ board, columns, items });
+      const html = BoardPage(pageData);
       return new Response(html, {
         headers: { "Content-Type": "text/html; charset=utf-8" },
       });
@@ -30,7 +31,7 @@ createRouteHelper({
 
 createRouteHelper({
   methods: ["POST"],
-  pattern: /^\/board\/(\d+)$/i,
+  pattern: /^\/board\/([a-zA-Z0-9]+)$/i,
   handler: async (ctx) => {
     const formData = await ctx.request.formData();
     const intent = formData.get("intent");
@@ -43,7 +44,7 @@ createRouteHelper({
     if (ctx.request.headers.get("Accept")?.includes("application/json")) {
       return Response.json(data ?? { success: true });
     } else {
-      const board = db.boards.get(parseInt(ctx.urlParams[0]), ctx.user.id);
+      const board = db.boards.get(ctx.urlParams[0], ctx.user.id);
       return new Response("", {
         status: 302,
         headers: {

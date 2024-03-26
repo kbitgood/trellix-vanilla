@@ -1,6 +1,8 @@
 import type { RouteContext } from "../server.ts";
 import * as db from "../db.ts";
 import { BadRequestError, NotFoundError } from "../error.ts";
+import type { BoardData, UserData } from "../model.ts";
+import { hasProp } from "./lib.ts";
 
 function createAction<
   ReturnType,
@@ -10,8 +12,8 @@ function createAction<
   options: { requireBoard?: NeedsBoard; requiredFields?: Fields[] },
   handler: (
     ctx: NoInfer<{
-      user: Model.User;
-      board: NeedsBoard extends true ? Model.Board : Model.Board | null;
+      user: UserData;
+      board: NeedsBoard extends true ? BoardData : BoardData | null;
       data: Record<Fields, string>;
     }>,
   ) => ReturnType,
@@ -21,7 +23,7 @@ function createAction<
     user,
     formData,
   }: RouteContext<false> & { formData: FormData }) => {
-    const boardId = parseInt(urlParams[0]);
+    const boardId = urlParams[0];
     const board = db.boards.get(boardId, user.id);
     if (options.requireBoard !== false && !board) {
       throw new NotFoundError(`Board ${urlParams[0]} not found`);
@@ -34,9 +36,7 @@ function createAction<
     }
     return handler({
       user,
-      board: board as NeedsBoard extends true
-        ? Model.Board
-        : Model.Board | null,
+      board: board as NeedsBoard extends true ? BoardData : BoardData | null,
       data: data as Record<Fields, string>,
     });
   };
@@ -146,10 +146,3 @@ export const moveItem = createAction(
     return { success: true };
   },
 );
-
-function hasProp<Prop extends string>(
-  prop: Prop,
-  obj: unknown,
-): obj is { [K in Prop]: string } {
-  return obj !== null && typeof obj === "object" && prop in obj;
-}

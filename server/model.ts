@@ -1,10 +1,10 @@
 export type BoardData = {
-  id: number;
+  id: string;
   name: string;
   color: string;
 };
 export type UserData = {
-  id: number;
+  id: string;
   username: string;
 };
 export type ColumnData = {

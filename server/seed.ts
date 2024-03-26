@@ -5,7 +5,7 @@ export default function seed(db: Database) {
     `
         CREATE TABLE IF NOT EXISTS users
         (
-            id       INTEGER PRIMARY KEY AUTOINCREMENT,
+            id       TEXT PRIMARY KEY NOT NULL,
             username TEXT NOT NULL,
             password TEXT NOT NULL,
             UNIQUE (username)
@@ -18,7 +18,7 @@ export default function seed(db: Database) {
         CREATE TABLE IF NOT EXISTS sessions
         (
             token     TEXT PRIMARY KEY NOT NULL,
-            userId    INTEGER NOT NULL,
+            userId    TEXT NOT NULL,
             expiresAt DATE NOT NULL,
             FOREIGN KEY (userId) REFERENCES users (id) ON DELETE CASCADE
         );
@@ -29,10 +29,10 @@ export default function seed(db: Database) {
     `
         CREATE TABLE IF NOT EXISTS boards
         (
-            id     INTEGER PRIMARY KEY AUTOINCREMENT,
+            id     TEXT PRIMARY KEY NOT NULL,
             name   TEXT NOT NULL,
             color  TEXT NOT NULL,
-            userId INTEGER NOT NULL,
+            userId TEXT NOT NULL,
             FOREIGN KEY (userId) REFERENCES users (id) ON DELETE CASCADE
         );
     `,
@@ -44,7 +44,7 @@ export default function seed(db: Database) {
         (
             id      TEXT PRIMARY KEY NOT NULL,
             name    TEXT NOT NULL,
-            boardId INTEGER NOT NULL,
+            boardId TEXT NOT NULL,
             sortOrder INTEGER NOT NULL,
             FOREIGN KEY (boardId) REFERENCES boards (id) ON DELETE CASCADE
         );

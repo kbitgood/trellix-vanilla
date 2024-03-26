@@ -5,6 +5,7 @@ import SplashPage from "../template/SplashPage.ts";
 import { BadRequestError } from "../error.ts";
 import * as db from "../db.ts";
 import { clearCookieStr, createCookieStr } from "../cookie.ts";
+import { hasProp } from "./lib.ts";
 
 createRouteHelper({
   methods: ["GET"],
@@ -35,14 +36,7 @@ createRouteHelper({
   public: true,
   handler: async function ({ request, urlParams }) {
     const formData = Object.fromEntries((await request.formData()).entries());
-    if (
-      typeof formData !== "object" ||
-      formData === null ||
-      !("username" in formData) ||
-      typeof formData.username !== "string" ||
-      !("password" in formData) ||
-      typeof formData.password !== "string"
-    ) {
+    if (!hasProp("username", formData) || !hasProp("password", formData)) {
       throw new BadRequestError("Invalid form data");
     }
     const { username, password } = formData;
@@ -53,7 +47,7 @@ createRouteHelper({
           "An account with this username already exists.",
         );
       }
-      db.user.create(username, password);
+      db.user.create({ username, password });
     }
 
     const { token, expiresAt } = db.session.login(username, password);

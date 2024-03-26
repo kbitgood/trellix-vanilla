@@ -1,7 +1,12 @@
 export default function Nav({ loggedIn }: { loggedIn: boolean }) {
   return `
 <nav>
-  <a class="logo" href="${loggedIn ? "/home" : "/"}" id="home-link">
+  <a
+    class="logo"
+    href="${loggedIn ? "/home" : "/"}"
+    id="home-link"
+    ${loggedIn ? 'onclick="onHomeLinkClick(event)"' : ""}
+  >
     <div>Trellix-Vanilla</div>
     <div>a Stupid Demo</div>
   </a>
