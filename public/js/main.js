@@ -53,31 +53,6 @@ window.onFormSubmit = async function (event) {
   }
 };
 
-function onFormFocusOut(event) {
-  const form = event.currentTarget;
-  if (!form.contains(event.relatedTarget)) {
-    hideForm(form);
-  }
-}
-function hideForm(form) {
-  const button = form.previousElementSibling;
-  button.style.display = "";
-  form.style.display = "none";
-  form.reset();
-  form.removeEventListener("focusout", onFormFocusOut);
-}
-
-function onShowFormButtonClick(event) {
-  const button = event.currentTarget;
-  const form = button.nextElementSibling;
-  button.style.display = "none";
-  form.style.display = "";
-  const input = form.querySelector("input[type=text], textarea");
-  input.focus();
-  input.select();
-  form.addEventListener("focusout", onFormFocusOut);
-}
-
 function generateId() {
   const chars =
     "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -246,20 +221,12 @@ function getPageState() {
   return null;
 }
 
-window.showUpdateBoardNameForm = function (event) {
-  const button = event.currentTarget;
-  const form = button.nextElementSibling;
-  form.name.value = button.textContent;
-  onShowFormButtonClick(event);
-};
-
 window.updateBoardName = function (form, formData, promise) {
   const name = formData.get("name");
   const button = form.previousElementSibling;
   const prevName = button.textContent;
   button.textContent = name;
   button.focus();
-  hideForm(form);
   promise.catch(() => {
     button.textContent = prevName;
   });
@@ -281,13 +248,9 @@ window.deleteBoard = function (form, _, promise) {
   });
 };
 
-window.showAddColumnForm = function (event) {
-  onShowFormButtonClick(event);
+window.onNewColumnInputFocus = function () {
   const main = document.querySelector("main");
   main.scrollLeft = main.scrollWidth;
-};
-window.cancelAddColumn = function (event) {
-  hideForm(event.currentTarget.closest("form"));
 };
 
 window.createColumn = function (form, formData, promise) {
@@ -308,29 +271,15 @@ window.createColumn = function (form, formData, promise) {
  **************** Column Functions *****************
  ****************************************************/
 
-window.showUpdateColumnNameForm = function (event) {
-  const button = event.currentTarget;
-  const form = button.nextElementSibling;
-  form.name.value = button.textContent;
-  onShowFormButtonClick(event);
-};
-
 window.updateColumnName = function (form, formData, promise) {
   const name = formData.get("name");
   const button = form.previousElementSibling;
   const prevName = button.textContent;
   button.textContent = name;
   button.focus();
-  hideForm(form);
   promise.catch(() => {
     button.textContent = prevName;
   });
-};
-
-window.showAddItemForm = onShowFormButtonClick;
-
-window.cancelAddItem = function (event) {
-  hideForm(event.currentTarget?.closest("form"));
 };
 
 window.onAddItemKeyDown = function (event) {
