@@ -1,7 +1,4 @@
-import Column from "../template/Column.js";
-import Item from "../template/Item.js";
-import Board from "../template/Board.js";
-import Home from "../template/Home.js";
+import { Board, Column, Item, Home } from "./templates.js";
 
 /****************************************************
  ******************** Utilities *********************
@@ -29,18 +26,26 @@ window.onFormSubmit = async function (event) {
         saveData(pathname, nextState);
       }
     }
-    const response = await fetch(form.action, {
-      method: "POST",
-      headers: { Accept: "application/json" },
-      body: formData,
-    });
-    if (response.ok) {
-      resolve(await response.json());
-    } else {
+    try {
+      const response = await fetch(form.action, {
+        method: "POST",
+        headers: { Accept: "application/json" },
+        body: formData,
+      });
+      if (response.ok) {
+        resolve(await response.json());
+      } else {
+        if (prevState) {
+          saveData(pathname, prevState);
+        }
+        reject(await response.json());
+      }
+    } catch (error) {
+      console.log(error);
       if (prevState) {
         saveData(pathname, prevState);
       }
-      reject(await response.json());
+      reject(error);
     }
   } else {
     event.preventDefault();
@@ -185,7 +190,9 @@ function getPageState() {
   if (document.location.pathname.match(/\/board\/[0-9a-zA-Z]+/)) {
     const board = {
       id: document.location.pathname.split("/").pop(),
-      name: document.querySelector("main h1").textContent.trim(),
+      name: document
+        .querySelector(`form.update-board-name input[name="name"]`)
+        .value.trim(),
       color: document.body.style.backgroundColor,
     };
     const columns = [];
@@ -193,7 +200,9 @@ function getPageState() {
     document.querySelectorAll(".column").forEach((column, index) => {
       columns.push({
         id: column.dataset.id,
-        name: column.querySelector(".column-name").textContent.trim(),
+        name: column
+          .querySelector(`form.update-column-name input[name="name"]`)
+          .value.trim(),
         boardId: board.id,
         sortOrder: index + 1,
       });

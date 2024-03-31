@@ -1,6 +1,6 @@
 import Layout from "./Layout.ts";
-import Board from "../../public/template/Board";
 import type { BoardData, ColumnData, ItemData } from "../model.ts";
+import { Board } from "../../public/js/templates";
 
 export default function BoardPage({
   board,
@@ -15,7 +15,7 @@ export default function BoardPage({
     {
       loggedIn: true,
       title: `${board.name} Board in Trellix-Vanilla`,
-      scripts: ["/js/main.js"],
+      scripts: ["/js/main.js", "/js/templates.js"],
       bodyStyle: `background-color: ${board.color}; height: 100vh;`,
     },
     Board({ board, columns, items }),
