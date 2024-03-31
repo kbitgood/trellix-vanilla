@@ -9,54 +9,84 @@ function htmlToElement(html) {
   return template.content.firstElementChild;
 }
 
+const offlineChanges = [];
+
 window.onFormSubmit = async function (event) {
+  event.preventDefault();
   const form = event.target;
   if (!(form instanceof HTMLFormElement)) return;
-  const intent = form.intent.value;
-  if (intent && typeof window[intent] === "function") {
-    event.preventDefault();
-    let formData = new FormData(form);
-    const { promise, resolve, reject } = Promise.withResolvers();
-    const pathname = document.location.pathname;
-    const prevState = loadData(pathname);
-    window[intent](form, formData, promise);
-    if (pathname === document.location.pathname) {
-      const nextState = getPageState();
-      if (nextState) {
-        saveData(pathname, nextState);
-      }
+  let formData = new FormData(form);
+
+  const intent = formData.get("intent");
+  if (!intent || typeof window[intent] !== "function") {
+    console.error(
+      "Form not yet implemented",
+      form.action,
+      Object.fromEntries(formData.entries()),
+    );
+    return;
+  }
+
+  const { promise, resolve, reject } = Promise.withResolvers();
+  const pathname = document.location.pathname;
+  const prevState = loadData(pathname);
+  window[intent](form, formData, promise);
+  if (pathname === document.location.pathname) {
+    const nextState = getPageState();
+    if (nextState) {
+      saveData(pathname, nextState);
     }
-    try {
-      const response = await fetch(form.action, {
-        method: "POST",
-        headers: { Accept: "application/json" },
-        body: formData,
-      });
-      if (response.ok) {
-        resolve(await response.json());
-      } else {
-        if (prevState) {
-          saveData(pathname, prevState);
-        }
-        reject(await response.json());
-      }
-    } catch (error) {
-      console.log(error);
+  }
+  await sendAction({
+    action: form.action,
+    data: formData,
+    prevState,
+    resolve,
+    reject,
+    pathname,
+  });
+};
+
+async function sendAction(actionData) {
+  console.log("sending action", actionData);
+  const { action, data, prevState, resolve, reject, pathname } = actionData;
+
+  let formData = data;
+  if (!(formData instanceof FormData) && !!data && typeof data === "object") {
+    formData = new FormData();
+    for (const [key, value] of Object.entries(data)) {
+      formData.set(key, value);
+    }
+  }
+
+  if (navigator.onLine) {
+    const response = await fetch(action, {
+      method: "POST",
+      headers: { Accept: "application/json" },
+      body: formData,
+    });
+    if (response.ok) {
+      resolve(await response.json());
+    } else {
       if (prevState) {
         saveData(pathname, prevState);
       }
-      reject(error);
+      reject(await response.json());
     }
   } else {
-    event.preventDefault();
-    console.error(
-      "Form not yet implemented",
-      form.method,
-      form.action,
-      Object.fromEntries(new FormData(form).entries()),
-    );
+    console.log("offline, saving action");
+    offlineChanges.push(actionData);
   }
-};
+}
+
+window.addEventListener("online", async function () {
+  console.log("reconnected");
+  let actionData;
+  while ((actionData = offlineChanges.shift()) && navigator.onLine) {
+    console.log(actionData);
+    await sendAction(actionData);
+  }
+});
 
 function generateId() {
   const chars =
@@ -391,6 +421,9 @@ function onColumnDrop(event) {
   window.ondrop = undefined;
   if (!draggingColumn) return;
 
+  const prev = draggingColumn;
+  const prevParent = draggingColumn.parentElement;
+  const prevNextSibling = draggingColumn.nextElementSibling;
   const over = document.querySelector(
     ".column[data-over-left], .column[data-over-right]",
   );
@@ -415,10 +448,30 @@ function onColumnDrop(event) {
         draggingColumn,
       ) + 1,
     );
-    void fetch(`/board/${boardId}`, {
-      method: "POST",
-      headers: { Accept: "application/json" },
-      body: formData,
+
+    const { promise, resolve, reject } = Promise.withResolvers();
+    const pathname = document.location.pathname;
+    const prevState = loadData(pathname);
+    if (pathname === document.location.pathname) {
+      const nextState = getPageState();
+      if (nextState) {
+        saveData(pathname, nextState);
+      }
+    }
+    promise.catch(() => {
+      if (prevNextSibling) {
+        prevParent.insertBefore(prev, prevNextSibling);
+      } else {
+        prevParent.append(prev);
+      }
+    });
+    void sendAction({
+      action: `/board/${boardId}`,
+      data: formData,
+      prevState,
+      resolve,
+      reject,
+      pathname,
     });
   }
 
@@ -541,6 +594,9 @@ function onItemDrop(event) {
   const over = document.querySelector(
     ".item[data-over-top], .item[data-over-bottom], .item-list[data-over-top]",
   );
+  const prev = draggingItem;
+  const prevParent = draggingItem.parentElement;
+  const prevNextSibling = draggingItem.nextElementSibling;
   if (over !== draggingItem) {
     if (over.classList.contains("item-list")) {
       over.append(draggingItem);
@@ -566,10 +622,30 @@ function onItemDrop(event) {
         draggingItem,
       ) + 1,
     );
-    void fetch(`/board/${boardId}`, {
-      method: "POST",
-      headers: { Accept: "application/json" },
-      body: formData,
+
+    const { promise, resolve, reject } = Promise.withResolvers();
+    const pathname = document.location.pathname;
+    const prevState = loadData(pathname);
+    if (pathname === document.location.pathname) {
+      const nextState = getPageState();
+      if (nextState) {
+        saveData(pathname, nextState);
+      }
+    }
+    promise.catch(() => {
+      if (prevNextSibling) {
+        prevParent.insertBefore(prev, prevNextSibling);
+      } else {
+        prevParent.append(prev);
+      }
+    });
+    void sendAction({
+      action: `/board/${boardId}`,
+      data: formData,
+      prevState,
+      resolve,
+      reject,
+      pathname,
     });
   }
 
