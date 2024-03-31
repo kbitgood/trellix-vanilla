@@ -151,7 +151,7 @@ function onPageLoad() {
   if (document.location.pathname.match(/^\/board\/[0-9a-zA-Z]+$/)) {
     saveData(document.location.pathname, getPageState());
     if (document.querySelectorAll(".column").length === 0) {
-      document.querySelector(".add-column").click();
+      document.querySelector(`form.new-column input[type="text"]`).focus();
     }
   } else if (document.location.pathname === "/home") {
     saveData(document.location.pathname, getPageState());
@@ -260,15 +260,21 @@ function getPageState() {
   return null;
 }
 
-window.updateBoardName = function (form, formData, promise) {
-  const name = formData.get("name");
-  const button = form.previousElementSibling;
-  const prevName = button.textContent;
-  button.textContent = name;
-  button.focus();
+function updateName(form, formData, promise) {
+  const input = form.querySelector("input[name=name]");
+  const previousName = input.getAttribute("data-previous");
+  input.setAttribute("data-previous", input.value);
+  input.blur();
   promise.catch(() => {
-    button.textContent = prevName;
+    input.value = previousName;
+    input.setAttribute("data-previous", previousName);
   });
+}
+window.updateBoardName = updateName;
+
+window.cancelUpdatingName = function (event) {
+  const input = event.currentTarget;
+  input.value = input.getAttribute("data-previous") ?? "";
 };
 
 window.deleteBoard = function (form, _, promise) {
@@ -310,16 +316,7 @@ window.createColumn = function (form, formData, promise) {
  **************** Column Functions *****************
  ****************************************************/
 
-window.updateColumnName = function (form, formData, promise) {
-  const name = formData.get("name");
-  const button = form.previousElementSibling;
-  const prevName = button.textContent;
-  button.textContent = name;
-  button.focus();
-  promise.catch(() => {
-    button.textContent = prevName;
-  });
-};
+window.updateColumnName = updateName;
 
 window.onAddItemKeyDown = function (event) {
   if (event.key === "Escape") {

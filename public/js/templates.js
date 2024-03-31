@@ -91,6 +91,8 @@ export function Board({ board, columns, items }) {
         name="name"
         value="${board.name}"
         autocomplete="off"
+        data-previous="${board.name}"
+        onblur="cancelUpdatingName(event)"
       >`,
     )}
   </h1>
@@ -148,6 +150,8 @@ export function Column({ column, items = [] }) {
           name="name" 
           value="${column.name}"
           autocomplete="off"
+          data-previous="${column.name}"
+          onblur="cancelUpdatingName(event)"
         >`,
       )}
       ${ActionForm(
