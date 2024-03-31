@@ -15,6 +15,7 @@ export function Home({ boards }) {
     required
     id="name"
     style="margin-top: 0.5rem"
+    autocomplete="off"
   />
   <div class="form-row">
     <label for="board-color">Color</label
@@ -146,6 +147,7 @@ export function Column({ column, items = [] }) {
           aria-label="Edit column name" 
           name="name" 
           value="${column.name}"
+          autocomplete="off"
         >`,
       )}
       ${ActionForm(

@@ -162,7 +162,29 @@ main.splash {
       font-weight: 500;
       color: rgb(17 24 39);
     }
+  }
 
+  div.sign-in-buttons {
+    display: flex;
+    justify-content: space-evenly;
+    width: 100%;
+    max-width: 28rem;
+    margin: 2rem auto 0;
+    border-radius: 1.5rem;
+    padding: 2.5rem;
+    background-color: rgb(30 41 59);
+    color: rgb(61 239 233);
+    text-decoration: underline;
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+    font-weight: 500;
+  }
+}
+
+main.splash,
+main.login,
+main.home {
+  form {
     input[type="text"],
     input:not([type]),
     input[type="password"] {
@@ -204,22 +226,6 @@ main.splash {
       line-height: 1.25rem;
       font-weight: 500;
     }
-  }
-
-  div.sign-in-buttons {
-    display: flex;
-    justify-content: space-evenly;
-    width: 100%;
-    max-width: 28rem;
-    margin: 2rem auto 0;
-    border-radius: 1.5rem;
-    padding: 2.5rem;
-    background-color: rgb(30 41 59);
-    color: rgb(61 239 233);
-    text-decoration: underline;
-    font-size: 1.25rem;
-    line-height: 1.75rem;
-    font-weight: 500;
   }
 }
 
