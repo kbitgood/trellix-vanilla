@@ -149,7 +149,11 @@ function onPageLoad() {
     if (document.querySelectorAll(".column").length === 0) {
       document.querySelector(`form.new-column input[type="text"]`).focus();
     }
-  } else if (document.location.pathname === "/home") {
+    document.body.style.height = "100vh";
+    return;
+  }
+  document.body.style.height = "";
+  if (document.location.pathname === "/home") {
     saveData(document.location.pathname, getPageState());
     document.querySelector("#new-board input[type=text]").focus();
   }
@@ -162,6 +166,7 @@ function renderBoardPage(pageData) {
   const main = document.querySelector("main");
   main.replaceWith(boardEl);
   document.body.style.backgroundColor = pageData.board.color;
+  document.body.style.height = "100vh";
   onPageLoad();
 }
 
