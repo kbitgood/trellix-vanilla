@@ -28,12 +28,12 @@ And roast me on Twitter if I don't live up to Ryan's demo: [@kbitgood](https://t
 
 I noticed Ryan's Trellix demo was missing some features. I'd give his demo an A- 😉. So I added a couple of things.
 
-- I added ability to delete columns from a board. 
+- I added ability to delete columns from a board.
   - How can you use this without that?
-- I also added the ability to reorder columns with drag and drop. 
-- I made it work without javascript! 
-  - I was inspired by Remix's use of forms. If everything is a form then this is easy peasy. I just had to do some css trickery with `focus-within` instead of buttons that show forms. 
-- I made it work without an internet connection! 
+- I also added the ability to reorder columns with drag and drop.
+- I made it work without javascript!
+  - I was inspired by Remix's use of forms. If everything is a form then this is easy peasy. I just had to do some css trickery with `focus-within` instead of buttons that show forms.
+- I made it work without an internet connection!
   - It's not fully local-first or a PWA, but if you disconnect, everything will still work and it will sync up when you reconnect.
 
 ## Run It Locally
@@ -41,7 +41,7 @@ I noticed Ryan's Trellix demo was missing some features. I'd give his demo an A-
 Install [bun](https://bun.sh/docs/installation) then run:
 
 ```
-# 👇 not needed! zero dependancies baby!
+# 👇 not needed! zero dependencies baby!
 # bun install
 
 bun run dev
