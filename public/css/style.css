@@ -585,6 +585,7 @@ main.board {
           resize: none;
           background-color: transparent;
           cursor: pointer;
+          color: transparent;
 
           &::placeholder {
             color: transparent;
