@@ -48,7 +48,6 @@ window.onFormSubmit = async function (event) {
 };
 
 async function sendAction(actionData) {
-  console.log("sending action", actionData);
   const { action, data, prevState, resolve, reject, pathname } = actionData;
 
   let formData = data;
@@ -74,16 +73,13 @@ async function sendAction(actionData) {
       reject(await response.json());
     }
   } else {
-    console.log("offline, saving action");
     offlineChanges.push(actionData);
   }
 }
 
 window.addEventListener("online", async function () {
-  console.log("reconnected");
   let actionData;
   while ((actionData = offlineChanges.shift()) && navigator.onLine) {
-    console.log(actionData);
     await sendAction(actionData);
   }
 });
